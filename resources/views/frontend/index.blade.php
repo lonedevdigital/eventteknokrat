@@ -26,6 +26,7 @@
                     align-items: center;
                     gap: 0.55rem;
                     white-space: nowrap;
+                    min-width: 0;
                     color: #7b0f15;
                 }
 
@@ -38,14 +39,20 @@
                 }
 
                 #info-slider .info-title {
+                    display: inline-block;
+                    max-width: 30ch;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                     font-size: 0.79rem;
                     font-weight: 800;
                 }
 
                 #info-slider .info-body {
                     max-width: 44ch;
+                    display: inline-block;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    white-space: nowrap;
                     font-size: 0.74rem;
                     font-weight: 600;
                     opacity: 0.9;
@@ -105,6 +112,10 @@
                     #info-slider .info-track {
                         gap: 1.2rem;
                         padding: 0.58rem 0;
+                    }
+
+                    #info-slider .info-title {
+                        max-width: 18ch;
                     }
 
                     #info-slider .info-body {
