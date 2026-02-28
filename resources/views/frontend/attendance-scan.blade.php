@@ -85,6 +85,8 @@
             let isSubmitting = false;
             let lastToken = '';
             let lastScanAt = 0;
+            const REAR_CAMERA_HINTS = ['back', 'rear', 'environment', 'belakang'];
+            const FRONT_CAMERA_HINTS = ['front', 'user', 'selfie', 'depan'];
 
             function showResult(success, message) {
                 resultBox.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-emerald-50', 'text-emerald-700');
@@ -131,6 +133,45 @@
                 }
             }
 
+            function isLikelyMobile() {
+                const ua = String(navigator.userAgent || '').toLowerCase();
+                return /android|iphone|ipad|ipod|mobile/.test(ua) || window.matchMedia('(pointer: coarse)').matches;
+            }
+
+            function pickRearCameraId(devices) {
+                if (!Array.isArray(devices) || devices.length === 0) {
+                    return null;
+                }
+
+                const normalized = devices.map(function (device) {
+                    return {
+                        id: device.id,
+                        label: String(device.label || '').toLowerCase(),
+                    };
+                });
+
+                const rearByHint = normalized.find(function (device) {
+                    const hasRearHint = REAR_CAMERA_HINTS.some(function (hint) {
+                        return device.label.includes(hint);
+                    });
+                    const hasFrontHint = FRONT_CAMERA_HINTS.some(function (hint) {
+                        return device.label.includes(hint);
+                    });
+                    return hasRearHint && !hasFrontHint;
+                });
+                if (rearByHint) {
+                    return rearByHint.id;
+                }
+
+                const nonFront = normalized.find(function (device) {
+                    return !FRONT_CAMERA_HINTS.some(function (hint) {
+                        return device.label.includes(hint);
+                    });
+                });
+
+                return nonFront ? nonFront.id : null;
+            }
+
             async function startScanning() {
                 if (isScanning) {
                     return;
@@ -153,30 +194,60 @@
                         return;
                     }
 
-                    const selectedCamera = devices[0].id;
-                    await scanner.start(
-                        selectedCamera,
-                        { fps: 10, qrbox: { width: 240, height: 240 } },
-                        async function onScanSuccess(decodedText) {
-                            const now = Date.now();
-                            if (decodedText === lastToken && (now - lastScanAt) < 3000) {
-                                return;
+                    const scanConfig = { fps: 10, qrbox: { width: 240, height: 240 } };
+                    const onScanSuccess = async function (decodedText) {
+                        const now = Date.now();
+                        if (decodedText === lastToken && (now - lastScanAt) < 3000) {
+                            return;
+                        }
+
+                        lastToken = decodedText;
+                        lastScanAt = now;
+                        await submitAttendanceToken(decodedText);
+                    };
+                    const onScanError = function () {
+                        // Ignore scan errors per frame.
+                    };
+
+                    if (isLikelyMobile()) {
+                        try {
+                            await scanner.start(
+                                { facingMode: { exact: 'environment' } },
+                                scanConfig,
+                                onScanSuccess,
+                                onScanError
+                            );
+                        } catch (environmentError) {
+                            const rearCameraId = pickRearCameraId(devices);
+                            if (!rearCameraId) {
+                                throw environmentError;
                             }
 
-                            lastToken = decodedText;
-                            lastScanAt = now;
-                            await submitAttendanceToken(decodedText);
-                        },
-                        function () {
-                            // Ignore scan errors per frame.
+                            await scanner.start(
+                                rearCameraId,
+                                scanConfig,
+                                onScanSuccess,
+                                onScanError
+                            );
                         }
-                    );
+                    } else {
+                        const rearCameraId = pickRearCameraId(devices);
+                        const selectedCamera = rearCameraId || devices[0].id;
+                        await scanner.start(
+                            selectedCamera,
+                            scanConfig,
+                            onScanSuccess,
+                            onScanError
+                        );
+                    }
 
                     isScanning = true;
-                    cameraStatus.textContent = 'Kamera aktif. Arahkan QR code ke frame.';
+                    cameraStatus.textContent = isLikelyMobile()
+                        ? 'Kamera belakang aktif. Arahkan QR code ke frame.'
+                        : 'Kamera aktif. Arahkan QR code ke frame.';
                 } catch (error) {
-                    cameraStatus.textContent = 'Izin kamera ditolak atau kamera tidak dapat diakses.';
-                    showResult(false, 'Gagal mengakses kamera.');
+                    cameraStatus.textContent = 'Gagal mengaktifkan kamera belakang.';
+                    showResult(false, 'Kamera belakang wajib digunakan. Pastikan izin kamera aktif dan kamera belakang tersedia.');
                 }
             }
 
