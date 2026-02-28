@@ -67,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 // QR Presensi bisa diakses tanpa login
-Route::get('/presensi/qr/{qr_token}', [PublicQrController::class, 'show']);
+Route::get('/presensi/qr/{qr_token}', [PublicQrController::class, 'show'])->name('public.qr.show');
 
 Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser'])
     ->get('/dashboard/export-pdf', [DashboardController::class, 'exportPdf'])

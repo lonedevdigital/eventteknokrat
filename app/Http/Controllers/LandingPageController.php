@@ -411,12 +411,19 @@ class LandingPageController extends Controller
             return null;
         }
 
-        if (preg_match('#/presensi/qr/([A-Za-z0-9\-_]+)#', $raw, $matches)) {
+        // Handle URL scan result: https://domain/presensi/qr/{token}?...
+        if (preg_match('#/presensi/qr/([A-Za-z0-9\-_]{20,})#i', $raw, $matches)) {
             return $matches[1] ?? null;
         }
 
+        // Handle plain token content.
         if (preg_match('/^[A-Za-z0-9\-_]{20,}$/', $raw)) {
             return $raw;
+        }
+
+        // Last fallback: pick likely token chunk from arbitrary payload text.
+        if (preg_match('/([A-Za-z0-9\-_]{20,})/', $raw, $matches)) {
+            return $matches[1] ?? null;
         }
 
         return null;

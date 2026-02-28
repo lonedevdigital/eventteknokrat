@@ -218,17 +218,26 @@
                                 onScanError
                             );
                         } catch (environmentError) {
-                            const rearCameraId = pickRearCameraId(devices);
-                            if (!rearCameraId) {
-                                throw environmentError;
-                            }
+                            try {
+                                await scanner.start(
+                                    { facingMode: 'environment' },
+                                    scanConfig,
+                                    onScanSuccess,
+                                    onScanError
+                                );
+                            } catch (softEnvironmentError) {
+                                const rearCameraId = pickRearCameraId(devices);
+                                if (!rearCameraId && devices.length !== 1) {
+                                    throw softEnvironmentError;
+                                }
 
-                            await scanner.start(
-                                rearCameraId,
-                                scanConfig,
-                                onScanSuccess,
-                                onScanError
-                            );
+                                await scanner.start(
+                                    rearCameraId || devices[0].id,
+                                    scanConfig,
+                                    onScanSuccess,
+                                    onScanError
+                                );
+                            }
                         }
                     } else {
                         const rearCameraId = pickRearCameraId(devices);

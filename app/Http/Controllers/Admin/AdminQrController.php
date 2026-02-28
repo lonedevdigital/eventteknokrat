@@ -12,6 +12,21 @@ class AdminQrController extends Controller
 {
     private const QR_LIFETIME_MINUTES = 5;
 
+    protected function resolveEventByReference(string $reference): Event
+    {
+        $reference = trim($reference);
+
+        return Event::query()
+            ->where('slug', $reference)
+            ->orWhere('id', $reference)
+            ->firstOrFail();
+    }
+
+    protected function buildQrPath(string $token): string
+    {
+        return route('public.qr.show', ['qr_token' => $token], false);
+    }
+
     protected function normalizeRole(?string $role): string
     {
         $role = strtolower(trim((string) $role));
@@ -61,15 +76,15 @@ class AdminQrController extends Controller
     /**
      * Generate QR token untuk event
      */
-    public function generate($slug)
+    public function generate(string $eventRef)
     {
-        $event = Event::where('slug', $slug)->firstOrFail();
+        $event = $this->resolveEventByReference($eventRef);
         $this->authorizeEventByRole($event);
 
         $qr = $this->createFreshToken($event);
 
         // Link untuk presensi
-        $qrLink = url('/presensi/qr/' . $qr->qr_token);
+        $qrLink = $this->buildQrPath($qr->qr_token);
 
         return view('admin.qr.show', [
             'event'   => $event,
@@ -85,11 +100,12 @@ class AdminQrController extends Controller
         $this->authorizeEventByRole($event);
 
         $qr = $this->createFreshToken($event);
-        $qrLink = url('/presensi/qr/' . $qr->qr_token);
+        $qrLink = $this->buildQrPath($qr->qr_token);
 
         return response()->json([
             'success' => true,
             'qr_link' => $qrLink,
+            'qr_url' => url($qrLink),
             'token' => $qr->qr_token,
             'expires_at_iso' => $qr->expires_at?->toIso8601String(),
             'expires_at_human' => $qr->expires_at?->format('d M Y H:i:s'),

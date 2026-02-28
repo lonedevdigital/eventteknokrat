@@ -241,7 +241,7 @@
                                     <div class="d-flex justify-content-center" style="gap: 5px;">
 
                                         {{-- 1. QR Code --}}
-                                        <a href="{{ route('admin.events.qr', $event->slug) }}"
+                                        <a href="{{ route('admin.events.qr', $event->slug ?: $event->id) }}"
                                            class="btn btn-sm btn-action-flat btn-dark-flat"
                                            title="Generate QR">
                                             QR
