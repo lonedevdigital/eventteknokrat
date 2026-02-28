@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: E-Event API
+  version: 1.4.0
+  description: >
+    Dokumentasi resmi API Backend E-Event Teknokrat.
+    Berisi API untuk aplikasi klien (Mahasiswa) seperti Mobile App maupun Portal Frontend.
+    Untuk manajemen data master seperti membuat kategori, user, dan dashboard dilakukan melalui rute Web/CMS Admin.
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local Development Server
+  - url: https://apv1.lonedev.my.id/api
+    description: Production Server
+
+tags:
+  - name: Authentication
+  - name: Public Events
+  - name: User & My Events
+  - name: Registration & Attendance
+  - name: QR Presensi
+  - name: Certificates
+  - name: Updates & Gallery
+
+paths:
+  /mahasiswa/login:
+    post:
+      tags: [Authentication]
+      summary: Login mahasiswa
+      description: Login menggunakan NPM dan Password yang terdaftar untuk mendapat Bearer Token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                npm:
+                  type: string
+                  example: "20312011"
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login berhasil dan mengembalikan token.
+        "401":
+          description: Kredensial (NPM atau password) salah.
+
+  /mahasiswa/register:
+    post:
+      tags: [Authentication]
+      summary: Registrasi user mahasiswa baru (Opsional)
+      description: Endpoint ini diregistrasikan di routes namun bergantung pada body request pada controller-nya.
+
+  /mahasiswa/me:
+    get:
+      tags: [Authentication]
+      summary: Mendapat detail profil Mahasiswa
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profil (user & tabel mahasiswa) berhasil dikembalikan.
+
+  /mahasiswa/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout sesi pengguna
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Berhasil logout dan token dihapus.
+
+  /events:
+    get:
+      tags: [Public Events]
+      summary: Mendapatkan semua events
+      description: Data list events untuk publik, urut dari yang paling baru.
+      responses:
+        "200":
+          description: Success
+
+  /events/{slug}:
+    get:
+      tags: [Public Events]
+      summary: Get event detail by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: seminar-teknologi-2026
+      responses:
+        "200":
+          description: Success
+
+  /sliders:
+    get:
+      tags: [Public Events]
+      summary: Slider rekomendasi events (Top 5)
+      responses:
+        "200":
+          description: Success mengembalikan event dengan thumbnail.
+
+  /mahasiswa/my-events:
+    get:
+      tags: [User & My Events]
+      summary: Riwayat event yang didaftar/diikuti mahasiswa
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: filter
+          in: query
+          description: Filter status acara (ongoing, upcoming, finished).
+          schema:
+            type: string
+            enum: [ongoing, upcoming, finished]
+      responses:
+        "200":
+          description: Success
+          
+  /events/{slug}/register:
+    post:
+      tags: [Registration & Attendance]
+      summary: Mendaftar pada sebuah event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Registration success
+
+  /events/{slug}/attendance:
+    post:
+      tags: [Registration & Attendance]
+      summary: Merekap kehadiran event (Metode Manual)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Attendance recorded
+
+  /events/{slug}/generate-qr:
+    post:
+      tags: [QR Presensi]
+      summary: Panitia membuat Token QR baru untuk Event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Token QR berhasil diperbarui/dibangun.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  slug:
+                    type: string
+                  qr_token:
+                    type: string
+                  qr_image_url:
+                    type: string
+
+  /attendance/scan:
+    post:
+      tags: [QR Presensi]
+      summary: Memasukkan payload kehadiran dari Scan QR
+      description: Endpoint yang ditembak ketika menscan QR Presensi.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                qr_token:
+                  type: string
+      responses:
+        "200":
+          description: Kehadiran tercatat berdasarkan token.
+
+  /certificate/{slug}:
+    get:
+      tags: [Certificates]
+      summary: Unduh path tautan Sertifikat
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Mengembalikan Payload path / link ke file Sertifikat Peserta
+
+  /infos:
+    get:
+      tags: [Updates & Gallery]
+      summary: Get all published information / Berita
+      responses:
+        "200":
+          description: Data list berita/info berhasil ditarik
+
+  /infos/{id}:
+    get:
+      tags: [Updates & Gallery]
+      summary: Get detail of an info article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Fetch detail info
+        "404":
+          description: Info tidak ditemukan / belum dipublish
+
+  /documentation:
+    get:
+      tags: [Updates & Gallery]
+      summary: Galeri Dokumentasi per Event
+      responses:
+        "200":
+          description: Mengembalikan daftar event dengan gambar thumbnail dokumentasinya (jika ada)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum Token
+

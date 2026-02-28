@@ -1,0 +1,22 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "tw:watch": "npx @tailwindcss/cli -i ./src/input.css -o ./public/src/output.css --watch",
+        "tw:build": "npx @tailwindcss/cli -i ./src/input.css -o ./public/src/output.css --minify"
+    },
+    "devDependencies": {
+        "@tailwindcss/cli": "^4.2.1",
+        "@tailwindcss/forms": "^0.5.2",
+        "@tailwindcss/postcss": "^4.2.1",
+        "alpinejs": "^3.4.2",
+        "autoprefixer": "^10.4.2",
+        "axios": "^1.6.4",
+        "laravel-vite-plugin": "^1.0.0",
+        "postcss": "^8.4.31",
+        "tailwindcss": "^4.2.1",
+        "vite": "^5.0.0"
+    }
+}

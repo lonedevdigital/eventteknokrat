@@ -1,0 +1,100 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: eeventteknokrat-app:latest
+    container_name: eeventteknokrat-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      APP_KEY: ${APP_KEY}
+
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-event}
+      DB_USERNAME: ${DB_USERNAME:-event_user}
+      DB_PASSWORD: ${DB_PASSWORD:-event_password}
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+      CACHE_DRIVER: ${CACHE_DRIVER:-file}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
+
+      WAIT_FOR_DB: ${WAIT_FOR_DB:-true}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      GENERATE_APP_KEY: ${GENERATE_APP_KEY:-false}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - laravel_storage:/var/www/html/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: eeventteknokrat-mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-event}
+      MYSQL_USER: ${DB_USERNAME:-event_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-event_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: eeventteknokrat-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command: >
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ];
+      then redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD";
+      else redis-server --appendonly yes; fi'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then redis-cli -a \"$$REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+
+volumes:
+  laravel_storage:
+  mysql_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

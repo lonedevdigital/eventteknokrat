@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+@source "../resources/views";
+@source "../resources/js";
+@source "../app";

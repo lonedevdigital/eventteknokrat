@@ -1,0 +1,86 @@
+@extends('templateAdminLTE.home')
+
+@section('sub-breadcrumb', 'Tambah Sponsor')
+@section('page-title', 'Tambah Sponsor')
+
+@section('content')
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Tambah Sponsor</h3>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('sponsors.store') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+
+                        <div class="form-group">
+                            <label>Nama Sponsor</label>
+                            <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required>
+                            @error('nama')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Link Sponsor (Opsional)</label>
+                            <input type="url" name="link_url" class="form-control @error('link_url') is-invalid @enderror" value="{{ old('link_url') }}" placeholder="https://example.com">
+                            @error('link_url')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Logo Sponsor</label>
+                            <div class="custom-file">
+                                <input type="file" name="logo_file" class="custom-file-input @error('logo_file') is-invalid @enderror" id="logoFile" accept=".jpg,.jpeg,.png,.webp" required>
+                                <label class="custom-file-label" for="logoFile">Pilih file logo...</label>
+                            </div>
+                            @error('logo_file')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Format: JPG, JPEG, PNG, WEBP (maks 4MB).</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Urutan Tampil</label>
+                            <input type="number" name="urutan" class="form-control @error('urutan') is-invalid @enderror" value="{{ old('urutan', 0) }}" min="0" max="9999">
+                            @error('urutan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <input type="hidden" name="is_active" value="0">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="isActiveSwitch" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="isActiveSwitch">Tampilkan di halaman frontend</label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success">
+                            <i class="fa fa-save"></i> Simpan
+                        </button>
+                        <a href="{{ route('sponsors.index') }}" class="btn btn-secondary">Kembali</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const input = document.getElementById('logoFile');
+        if (!input) return;
+        input.addEventListener('change', function () {
+            const label = document.querySelector('label[for="logoFile"]');
+            if (!label) return;
+            const fileName = this.files && this.files[0] ? this.files[0].name : 'Pilih file logo...';
+            label.textContent = fileName;
+        });
+    })();
+</script>
+@endpush
+
