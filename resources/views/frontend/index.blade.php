@@ -1,28 +1,36 @@
 @extends('layouts.frontend')
 
 @section('content')
-    <div class="grid gap-5">
-        <section class="mx-auto w-full px-0.5 pt-2 md:pt-3" id="info-slider">
+    <div class="grid min-w-0 gap-5">
+        <section class="mx-auto w-full min-w-0 max-w-full overflow-hidden px-0.5 pt-2 md:pt-3" id="info-slider">
             <style>
                 #info-slider .info-marquee {
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
                     overflow: hidden;
                 }
 
                 #info-slider .info-track {
                     display: flex;
+                    min-width: max-content;
                     width: max-content;
                     align-items: center;
                     gap: 1.8rem;
                     padding: 0.7rem 0;
                     animation: info-slide-left 34s linear infinite;
+                    will-change: transform;
                 }
 
-                #info-slider .info-marquee:hover .info-track {
-                    animation-play-state: paused;
+                @media (hover: hover) and (pointer: fine) {
+                    #info-slider .info-marquee:hover .info-track {
+                        animation-play-state: paused;
+                    }
                 }
 
                 #info-slider .info-item {
                     display: inline-flex;
+                    flex: 0 0 auto;
                     align-items: center;
                     gap: 0.55rem;
                     white-space: nowrap;
@@ -40,18 +48,12 @@
 
                 #info-slider .info-title {
                     display: inline-block;
-                    max-width: 30ch;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
                     font-size: 0.79rem;
                     font-weight: 800;
                 }
 
                 #info-slider .info-body {
-                    max-width: 44ch;
                     display: inline-block;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
                     white-space: nowrap;
                     font-size: 0.74rem;
                     font-weight: 600;
@@ -114,14 +116,6 @@
                         padding: 0.58rem 0;
                     }
 
-                    #info-slider .info-title {
-                        max-width: 18ch;
-                    }
-
-                    #info-slider .info-body {
-                        max-width: 22ch;
-                    }
-
                     .section-title-accent {
                         gap: 0.5rem;
                     }
@@ -136,22 +130,14 @@
                     }
                 }
 
-                @media (prefers-reduced-motion: reduce) {
-                    #info-slider .info-track {
-                        animation: none;
-                        width: 100%;
-                        flex-wrap: wrap;
-                        gap: 0.8rem 1rem;
-                    }
-                }
             </style>
 
-            <div class="overflow-hidden rounded-2xl border border-[#ab021c]/15 bg-white shadow-sm">
-                <div class="flex items-stretch">
+            <div class="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-[#ab021c]/15 bg-white shadow-sm">
+                <div class="flex w-full min-w-0 max-w-full items-stretch overflow-hidden">
                     <div class="flex shrink-0 items-center bg-[#ab021c] px-3 py-2 text-[11px] font-extrabold uppercase tracking-[0.5px] text-white md:px-4 md:text-xs">
                         Info Terkini
                     </div>
-                    <div class="min-w-0 flex-1 px-3 md:px-4">
+                    <div class="min-w-0 flex-1 overflow-hidden px-3 md:px-4">
                         @if($latestInfos->isEmpty())
                             <p class="py-2 text-xs font-semibold text-[#ab021c]/80 md:text-sm">
                                 Belum ada informasi terbaru saat ini.
@@ -162,11 +148,7 @@
                                     @for($tickerLoop = 0; $tickerLoop < 2; $tickerLoop++)
                                         @foreach($latestInfos as $info)
                                             @php
-                                                $infoBody = \Illuminate\Support\Str::limit(
-                                                    trim(preg_replace('/\s+/', ' ', strip_tags((string) $info->isi))),
-                                                    100,
-                                                    '...'
-                                                );
+                                                $infoBody = trim(preg_replace('/\s+/', ' ', strip_tags((string) $info->isi)));
                                                 $infoDate = $info->published_at
                                                     ? $info->published_at->format('d M Y')
                                                     : ($info->updated_at ? $info->updated_at->format('d M Y') : 'Update');
