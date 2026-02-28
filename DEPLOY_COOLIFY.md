@@ -24,11 +24,11 @@
 ## 4) Optional
 - `RUN_MIGRATIONS=true` untuk auto migrate saat container start.
 - `REDIS_PASSWORD` jika ingin Redis pakai password.
-- `APP_PORT` jika test local compose (default `8080`).
 
 ## 5) Catatan penting
+- Untuk Coolify, service `app` tidak bind host port langsung (menghindari bentrok seperti `port is already allocated`).
+- Set port aplikasi di pengaturan Coolify ke internal port `80`.
 - Upload file Laravel disimpan persisten di volume `laravel_storage`.
 - Database disimpan persisten di volume `mysql_data`.
 - Redis data disimpan persisten di volume `redis_data`.
 - Jika sudah punya database eksternal, nonaktifkan service `mysql` pada compose dan set `DB_HOST` ke host eksternal.
-

@@ -6,8 +6,6 @@ services:
     image: eeventteknokrat-app:latest
     container_name: eeventteknokrat-app
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8080}:80"
     expose:
       - "80"
     environment:
