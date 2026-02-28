@@ -18,3 +18,5 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+hs_err_pid*.log
+migrate_error.log
