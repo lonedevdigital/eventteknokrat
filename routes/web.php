@@ -83,11 +83,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::middleware(['role:baak,kemahasiswaan,superuser'])->group(function () {
+    Route::middleware(['role:baak,kemahasiswaan,superuser,penanggung_jawab'])->group(function () {
         // === DASHBOARD UTAMA ===
-        // Menggunakan Analytics Controller yang baru
+        // Penanggung Jawab juga boleh masuk area dashboard admin
         Route::get('/dashboard', [DashboardAnalyticsController::class, 'index'])->name('dashboard');
 
+        // === MANAJEMEN SERTIFIKAT (View) ===
+        // Role Penanggung Jawab hanya diizinkan ke Data Event + Sertifikat
+        Route::prefix('dashboard/certificates')->name('certificates.')->group(function () {
+            Route::get('/', [CertificateAdminController::class, 'index'])->name('index');
+            Route::get('/{event_id}', [CertificateAdminController::class, 'eventDetail'])->name('event-detail');
+            Route::delete('/{registration_id}/delete-certificate', [CertificateAdminController::class, 'deleteCertificate'])->name('delete');
+        });
+    });
+
+    Route::middleware(['role:baak,kemahasiswaan,superuser'])->group(function () {
         // Fitur Export Rekap Global
         Route::get('/dashboard/rekap/export-pdf', [HomeController::class, 'exportRekapPdf'])->name('dashboard.rekap.pdf');
 
@@ -97,13 +107,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('{id}/detail', [EventAnalyticsController::class, 'detail'])->name('detail');
             Route::get('{id}/export-excel', [EventAnalyticsController::class, 'exportExcel'])->name('export.excel');
             Route::get('{id}/export-pdf', [EventAnalyticsController::class, 'exportPDF'])->name('export.pdf');
-        });
-
-        // === MANAJEMEN SERTIFIKAT (View) ===
-        Route::prefix('dashboard/certificates')->name('certificates.')->group(function () {
-            Route::get('/', [CertificateAdminController::class, 'index'])->name('index');
-            Route::get('/{event_id}', [CertificateAdminController::class, 'eventDetail'])->name('event-detail');
-            Route::delete('/{registration_id}/delete-certificate', [CertificateAdminController::class, 'deleteCertificate'])->name('delete');
         });
     });
 });
@@ -137,23 +140,19 @@ Route::prefix('admin/api')->middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes (CRUD Data Master & Event Management)
+| Admin Routes (Admin Core)
 |--------------------------------------------------------------------------
 | Role: BAAK, Kemahasiswaan, Super User
 */
 Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser'])->prefix('admin')->group(function () {
-
-    // Manajemen Event & Kategori
+    // Manajemen Event (khusus admin core)
     Route::get('events/recommendations', [EventRecommendationController::class, 'index'])
         ->name('events.recommendations.index');
     Route::post('events/recommendations/{event}', [EventRecommendationController::class, 'toggle'])
         ->name('events.recommendations.toggle');
-    Route::resource('events', AdminEventController::class)->names('events');
-    Route::resource('event-categories', EventCategoryController::class)->names('event-categories');
 
-    // Generate QR Event (Admin Side)
-    Route::get('events/{slug}/generate-qr', [AdminQrController::class, 'generate'])->name('admin.events.qr');
-    Route::post('events/{event}/generate-qr/refresh', [AdminQrController::class, 'refresh'])->name('admin.events.qr.refresh');
+    // Data master event
+    Route::resource('event-categories', EventCategoryController::class)->names('event-categories');
 
     // Info Terkini
     Route::resource('infos', InfoController::class)->names('infos');
@@ -172,6 +171,21 @@ Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser'])->prefix('admin'
     
     // Manajemen User (Admin & BAAK/Kemahasiswaan)
     Route::resource('user-management', \App\Http\Controllers\Admin\UserManagementController::class);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (Shared Event Access)
+|--------------------------------------------------------------------------
+| Role: BAAK, Kemahasiswaan, Super User, Penanggung Jawab
+| Penanggung Jawab dibatasi hanya modul Data Event + Sertifikat
+*/
+Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab'])->prefix('admin')->group(function () {
+    Route::resource('events', AdminEventController::class)->names('events');
+
+    // Generate QR Event (dari halaman Data Event)
+    Route::get('events/{slug}/generate-qr', [AdminQrController::class, 'generate'])->name('admin.events.qr');
+    Route::post('events/{event}/generate-qr/refresh', [AdminQrController::class, 'refresh'])->name('admin.events.qr.refresh');
 });
 
 // Route akses data master (via URL berbeda tapi controller sama)

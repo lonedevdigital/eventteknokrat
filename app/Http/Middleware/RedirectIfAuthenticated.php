@@ -43,6 +43,7 @@ class RedirectIfAuthenticated
             'superuser',
             'baak',
             'kemahasiswaan',
+            'penanggung_jawab',
             'admin',
             'super_user',
             'kemasis',

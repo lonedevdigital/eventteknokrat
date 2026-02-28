@@ -1,3 +1,15 @@
+@php
+    $currentUser = auth()->user();
+    $isPenanggungJawab = $currentUser?->isPenanggungJawab() ?? false;
+    $isAdminCore = $currentUser && ($currentUser->isSuperUser() || $currentUser->isBaak() || $currentUser->isKemahasiswaan());
+
+    $eventMenuOpen = request()->routeIs('events.*')
+        || request()->routeIs('events.recommendations.*')
+        || request()->routeIs('event-categories.*')
+        || request()->routeIs('certificates.*');
+@endphp
+
+@if(!$isPenanggungJawab)
 <li class="nav-item">
     <a href="{{ url('dashboard') }}"
        class="nav-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
@@ -13,9 +25,10 @@
         <p>Mahasiswa</p>
     </a>
 </li>
+@endif
 
 {{-- Manajemen User (Admin & BAAK/Kemahasiswaan) --}}
-@if(auth()->user()->isStaff())
+@if($isAdminCore)
 <li class="nav-item">
     <a href="{{ route('user-management.index') }}"
        class="nav-link {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
@@ -25,12 +38,6 @@
 </li>
 @endif
 
-@php
-    $eventMenuOpen = request()->routeIs('events.*')
-        || request()->routeIs('events.recommendations.*')
-        || request()->routeIs('event-categories.*')
-        || request()->routeIs('certificates.*');
-@endphp
 <li class="nav-item has-treeview {{ $eventMenuOpen ? 'menu-open' : '' }}">
     <a href="#" class="nav-link {{ $eventMenuOpen ? 'active' : '' }}">
         <i class="fa fa-calendar nav-icon {{ $eventMenuOpen ? 'text-white' : 'text-dark' }}"></i>
@@ -47,6 +54,8 @@
                 <p>Data Event</p>
             </a>
         </li>
+
+        @if(!$isPenanggungJawab)
         <li class="nav-item">
             <a href="{{ route('events.recommendations.index') }}"
                class="nav-link {{ request()->routeIs('events.recommendations.*') ? 'active' : '' }}">
@@ -61,6 +70,8 @@
                 <p>Kategori</p>
             </a>
         </li>
+        @endif
+
         <li class="nav-item">
             <a href="{{ route('certificates.index') }}"
                class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
@@ -71,6 +82,7 @@
     </ul>
 </li>
 
+@if(!$isPenanggungJawab)
 {{-- Info Terkini --}}
 <li class="nav-item">
     <a href="{{ route('infos.index') }}"
@@ -87,3 +99,4 @@
         <p>Sponsor</p>
     </a>
 </li>
+@endif

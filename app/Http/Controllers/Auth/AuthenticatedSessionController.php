@@ -38,7 +38,7 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login', [
             'loginMode' => 'admin',
             'loginTitle' => 'Login Admin',
-            'loginSubtitle' => 'Khusus akun admin (BAAK, Kemahasiswaan, Superuser).',
+            'loginSubtitle' => 'Khusus akun admin (BAAK, Kemahasiswaan, Superuser, Penanggung Jawab).',
             'formAction' => route('admin.login.store'),
             'usernameLabel' => 'Username / Email Admin',
             'usernamePlaceholder' => 'Masukkan username atau email admin',
@@ -107,6 +107,7 @@ class AuthenticatedSessionController extends Controller
             'superuser',
             'baak',
             'kemahasiswaan',
+            'penanggung_jawab',
             // backward compatibility role lama
             'admin',
             'super_user',
