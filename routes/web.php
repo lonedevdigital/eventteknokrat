@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\EventAttendanceApiController;
 use App\Http\Controllers\Admin\EventRecommendationController;
 use App\Http\Controllers\Admin\SponsorController;
+use App\Http\Controllers\Admin\CompetitionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/my-event/attendance', [LandingPageController::class, 'submitAttendance'])->name('frontend.attendance.submit');
     Route::get('/sertifikat', [LandingPageController::class, 'certificates'])->name('frontend.certificates');
     Route::post('/event-list/{slug}/register', [LandingPageController::class, 'registerEvent'])->name('frontend.events.register');
+
+    // === MY TEAMS (Mahasiswa — untuk Lomba) ===
+    Route::get('/my-teams', [\App\Http\Controllers\TeamController::class, 'index'])->name('frontend.teams.index');
+    Route::get('/my-teams/create', [\App\Http\Controllers\TeamController::class, 'create'])->name('frontend.teams.create');
+    Route::post('/my-teams', [\App\Http\Controllers\TeamController::class, 'store'])->name('frontend.teams.store');
+    Route::delete('/my-teams/{team}', [\App\Http\Controllers\TeamController::class, 'destroy'])->name('frontend.teams.destroy');
 });
 
 /*
@@ -173,6 +180,11 @@ Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser'])->prefix('admin'
     Route::resource('user-management', \App\Http\Controllers\Admin\UserManagementController::class);
 });
 
+// Manajemen Role (Superuser only)
+Route::middleware(['auth', 'role:superuser'])->prefix('admin')->group(function () {
+    Route::resource('role-management', \App\Http\Controllers\Admin\RoleManagementController::class)->except(['show']);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Admin Routes (Shared Event Access)
@@ -187,6 +199,22 @@ Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab']
     Route::get('events/{slug}/generate-qr', [AdminQrController::class, 'generate'])->name('admin.events.qr');
     Route::post('events/{event}/generate-qr/refresh', [AdminQrController::class, 'refresh'])->name('admin.events.qr.refresh');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Lomba / Perlombaan — Manajemen & Panitia
+|--------------------------------------------------------------------------
+| Role: BAAK, Kemahasiswaan, Superuser, Penanggung Jawab, Ketua Pelaksana
+| (otorisasi granular per-lomba ditangani di CompetitionController)
+*/
+Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab,ketua_pelaksana'])
+    ->prefix('admin')->group(function () {
+        Route::get('lomba', [CompetitionController::class, 'index'])->name('lomba.index');
+        Route::get('lomba/{event}/kelola', [CompetitionController::class, 'manage'])->name('lomba.manage');
+        Route::post('lomba/{event}/ketua', [CompetitionController::class, 'assignKetua'])->name('lomba.assign-ketua');
+        Route::post('lomba/{event}/panitia', [CompetitionController::class, 'storePanitia'])->name('lomba.panitia.store');
+        Route::delete('lomba/{event}/panitia/{committee}', [CompetitionController::class, 'destroyPanitia'])->name('lomba.panitia.destroy');
+    });
 
 // Route akses data master (via URL berbeda tapi controller sama)
 Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser'])

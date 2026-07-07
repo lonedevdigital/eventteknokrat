@@ -12,11 +12,18 @@ class Event extends Model
 {
     use HasFactory;
 
+    // === JENIS EVENT ===
+    const TYPE_EVENT = 'event';
+    const TYPE_LOMBA = 'lomba';
+
     protected $fillable = [
+        'type',
         'slug',
         'thumbnail',
+        'flyer',
         'nama_event',
         'created_by_user_id',
+        'ketua_pelaksana_user_id',
         'owner_role', // ✅ BARU: role pemilik event (baak / kemahasiswaan)
         'event_category_id',
         'tempat_pelaksanaan',
@@ -25,8 +32,21 @@ class Event extends Model
         'tanggal_pendaftaran',
         'tanggal_pelaksanaan',
         'deskripsi',
+        'partisipasi_skala',
+        'partisipasi_prodi',
+        'tipe_bayar',
+        'kontak',
+        'syarat_ketentuan',
+        'jadwal_timeline',
+        'hadiah_penghargaan',
+        'cara_pendaftaran',
+        'juknis_file',
         'informasi_lainnya',
         'qr_token',
+    ];
+
+    protected $casts = [
+        'kontak' => 'array',
     ];
 
     // agar status & jumlah_peserta ikut muncul kalau di-JSON-kan
@@ -68,6 +88,59 @@ class Event extends Model
     public function recommendation()
     {
         return $this->hasOne(EventRecommendation::class, 'event_id');
+    }
+
+    /**
+     * -------------------------
+     *   RELASI LOMBA
+     * -------------------------
+     */
+
+    // Ketua Pelaksana yang diberi akses kelola oleh Penanggung Jawab
+    public function ketuaPelaksana()
+    {
+        return $this->belongsTo(User::class, 'ketua_pelaksana_user_id');
+    }
+
+    // Cabang lomba (untuk lomba berbayar)
+    public function branches()
+    {
+        return $this->hasMany(EventCompetitionBranch::class, 'event_id');
+    }
+
+    // Panitia event/lomba
+    public function committees()
+    {
+        return $this->hasMany(EventCommittee::class, 'event_id');
+    }
+
+    // Tim peserta lomba
+    public function teams()
+    {
+        return $this->hasMany(Team::class, 'event_id');
+    }
+
+    /**
+     * Helper jenis event
+     */
+    public function getIsLombaAttribute(): bool
+    {
+        return $this->type === self::TYPE_LOMBA;
+    }
+
+    public function isLomba(): bool
+    {
+        return $this->type === self::TYPE_LOMBA;
+    }
+
+    public function scopeLomba(Builder $q): Builder
+    {
+        return $q->where('type', self::TYPE_LOMBA);
+    }
+
+    public function scopeEventBiasa(Builder $q): Builder
+    {
+        return $q->where('type', self::TYPE_EVENT);
     }
 
     /**

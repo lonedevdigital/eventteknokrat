@@ -67,12 +67,21 @@ class LandingPageController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        $latestLomba = Event::lomba()
+            ->with(['branches', 'category'])
+            ->orderByRaw('CASE WHEN tanggal_pelaksanaan IS NULL THEN 1 ELSE 0 END')
+            ->orderByDesc('tanggal_pelaksanaan')
+            ->orderByDesc('created_at')
+            ->limit(6)
+            ->get();
+
         return view('frontend.index', [
             'hotEvents' => $hotEvents,
             'latestInfos' => $latestInfos,
             'sponsors' => $sponsors,
             'events' => $events,
             'galleryEvents' => $galleryEvents,
+            'latestLomba' => $latestLomba,
         ]);
     }
 

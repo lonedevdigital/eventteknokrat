@@ -1,6 +1,7 @@
 @php
     $currentUser = auth()->user();
     $isPenanggungJawab = $currentUser?->isPenanggungJawab() ?? false;
+    $isKetuaPelaksana  = $currentUser?->isKetuaPelaksana() ?? false;
     $isAdminCore = $currentUser && ($currentUser->isSuperUser() || $currentUser->isBaak() || $currentUser->isKemahasiswaan());
 
     $eventMenuOpen = request()->routeIs('events.*')
@@ -8,6 +9,17 @@
         || request()->routeIs('event-categories.*')
         || request()->routeIs('certificates.*');
 @endphp
+
+{{-- ============ KETUA PELAKSANA: menu fokus (hanya Lomba) ============ --}}
+@if($isKetuaPelaksana)
+<li class="nav-item">
+    <a href="{{ route('lomba.index') }}"
+       class="nav-link {{ request()->routeIs('lomba.*') ? 'active' : '' }}">
+        <i class="fa fa-trophy nav-icon {{ request()->routeIs('lomba.*') ? 'text-white' : 'text-dark' }}"></i>
+        <p>Lomba Saya</p>
+    </a>
+</li>
+@else
 
 @if(!$isPenanggungJawab)
 <li class="nav-item">
@@ -29,12 +41,35 @@
 
 {{-- Manajemen User (Admin & BAAK/Kemahasiswaan) --}}
 @if($isAdminCore)
-<li class="nav-item">
-    <a href="{{ route('user-management.index') }}"
-       class="nav-link {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
-        <i class="fa fa-user-cog nav-icon {{ request()->routeIs('user-management.*') ? 'text-white' : 'text-dark' }}"></i>
-        <p>Manajemen User</p>
+@php
+    $userMgmtOpen = request()->routeIs('user-management.*') || request()->routeIs('role-management.*');
+@endphp
+<li class="nav-item has-treeview {{ $userMgmtOpen ? 'menu-open' : '' }}">
+    <a href="#" class="nav-link {{ $userMgmtOpen ? 'active' : '' }}">
+        <i class="fa fa-user-cog nav-icon {{ $userMgmtOpen ? 'text-white' : 'text-dark' }}"></i>
+        <p>
+            Manajemen User
+            <i class="right fas fa-angle-left"></i>
+        </p>
     </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{{ route('user-management.index') }}"
+               class="nav-link {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Daftar User</p>
+            </a>
+        </li>
+        @if($currentUser->isSuperUser())
+        <li class="nav-item">
+            <a href="{{ route('role-management.index') }}"
+               class="nav-link {{ request()->routeIs('role-management.*') ? 'active' : '' }}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Manajemen Role</p>
+            </a>
+        </li>
+        @endif
+    </ul>
 </li>
 @endif
 
@@ -82,6 +117,15 @@
     </ul>
 </li>
 
+{{-- Lomba (admin core & Penanggung Jawab) --}}
+<li class="nav-item">
+    <a href="{{ route('lomba.index') }}"
+       class="nav-link {{ request()->routeIs('lomba.*') ? 'active' : '' }}">
+        <i class="fa fa-trophy nav-icon {{ request()->routeIs('lomba.*') ? 'text-white' : 'text-dark' }}"></i>
+        <p>{{ $isPenanggungJawab ? 'Lomba Saya' : 'Kelola Lomba' }}</p>
+    </a>
+</li>
+
 @if(!$isPenanggungJawab)
 {{-- Info Terkini --}}
 <li class="nav-item">
@@ -100,3 +144,5 @@
     </a>
 </li>
 @endif
+
+@endif {{-- /isKetuaPelaksana --}}

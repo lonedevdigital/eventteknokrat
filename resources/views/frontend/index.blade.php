@@ -295,7 +295,7 @@
                     Belum ada event untuk ditampilkan.
                 </div>
             @else
-                <div class="grid grid-cols-2 gap-3 md:gap-4">
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-3 lg:grid-cols-4 lg:gap-4">
                     @foreach($events as $event)
                         @php
                             $thumb = $event->thumbnail;
@@ -309,7 +309,8 @@
                         @endphp
                         <a
                             href="{{ route('frontend.events.show', $event->slug ?: $event->id) }}"
-                            class="relative block aspect-[16/11] overflow-hidden rounded-2xl bg-white shadow-sm"
+                            class="relative block overflow-hidden rounded-2xl bg-white shadow-sm"
+                            style="aspect-ratio: 3/4"
                         >
                             <img
                                 src="{{ $thumb ?: 'https://placehold.co/640x360/ffffff/ab021c?text=Event+Teknokrat+University' }}"
@@ -340,6 +341,8 @@
                 </div>
             @endif
         </section>
+
+        @include('frontend.partials.lomba-section')
 
         <section class="mx-auto w-full px-0.5 py-5 md:py-6" id="event-gallery">
             <div class="mb-4 text-center">
@@ -882,6 +885,54 @@
             }
             startAutoplay();
         }, { passive: true });
+
+        let isMouseDown = false;
+        let mouseStartX = 0;
+        let mouseDeltaX = 0;
+        let wasDragAction = false;
+
+        slider.style.cursor = 'grab';
+
+        slider.addEventListener('mousedown', function (event) {
+            if (event.button !== 0) { return; }
+            isMouseDown = true;
+            mouseStartX = event.clientX;
+            mouseDeltaX = 0;
+            wasDragAction = false;
+            stopAutoplay();
+            slider.style.cursor = 'grabbing';
+            event.preventDefault();
+        });
+
+        window.addEventListener('mousemove', function (event) {
+            if (!isMouseDown) { return; }
+            mouseDeltaX = event.clientX - mouseStartX;
+            if (Math.abs(mouseDeltaX) > 5) {
+                wasDragAction = true;
+            }
+        });
+
+        window.addEventListener('mouseup', function () {
+            if (!isMouseDown) { return; }
+            isMouseDown = false;
+            slider.style.cursor = 'grab';
+            if (Math.abs(mouseDeltaX) > 40) {
+                if (mouseDeltaX < 0) {
+                    moveTo(currentSlideIndex + 1);
+                } else {
+                    moveTo(currentSlideIndex - 1);
+                }
+            }
+            restartAutoplay();
+        });
+
+        slider.addEventListener('click', function (event) {
+            if (wasDragAction) {
+                event.preventDefault();
+                event.stopPropagation();
+                wasDragAction = false;
+            }
+        }, true);
 
         function getInitialRealIndex() {
             const isDesktop = window.matchMedia('(min-width: 768px)').matches;

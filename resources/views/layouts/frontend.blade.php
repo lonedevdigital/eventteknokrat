@@ -23,6 +23,7 @@
         ['label' => 'Home', 'url' => route('frontend.home')],
         ['label' => 'Profile', 'url' => route('profile.edit')],
         ['label' => 'My Event', 'url' => route('frontend.my-events')],
+        ['label' => 'My Teams', 'url' => route('frontend.teams.index')],
         ['label' => 'List Event', 'url' => route('frontend.events')],
         ['label' => 'Sertifikat', 'url' => route('frontend.certificates')],
     ];

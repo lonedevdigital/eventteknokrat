@@ -198,27 +198,218 @@
         }
     </style>
 
+    {{-- Green flat theme overrides --}}
+    <style>
+        :root { --primary-green: #27ae60; --primary-green-dark: #219150; }
+
+        .card-header-flat {
+            background-color: var(--primary-green);
+            color: #fff;
+            padding: 11px 18px;
+            border-bottom: none;
+        }
+        .card-header-flat h5, .card-header-flat h6,
+        .card-header-flat .card-title { color:#fff; font-weight:700; margin:0; }
+
+        /* Override btn-primary → green (for mode toggle & generate btn) */
+        .btn-primary {
+            background-color: var(--primary-green) !important;
+            border-color: var(--primary-green) !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-green-dark) !important;
+            border-color: var(--primary-green-dark) !important;
+        }
+        .btn-outline-primary {
+            color: var(--primary-green) !important;
+            border-color: var(--primary-green) !important;
+            background: transparent !important;
+        }
+        .btn-outline-primary:hover,
+        .btn-outline-primary.active {
+            background-color: var(--primary-green) !important;
+            color: #fff !important;
+        }
+        .btn-success {
+            background-color: var(--primary-green) !important;
+            border-color: var(--primary-green) !important;
+        }
+        .btn-success:hover { background-color: var(--primary-green-dark) !important; }
+        .btn-outline-success {
+            color: var(--primary-green) !important;
+            border-color: var(--primary-green) !important;
+        }
+        .btn-outline-success:hover {
+            background-color: var(--primary-green) !important;
+            color: #fff !important;
+        }
+
+        /* Flat table */
+        .table-flat thead th {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            border-bottom: 2px solid #bdc3c7;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: .5px;
+            vertical-align: middle;
+            padding: 9px 12px;
+        }
+        .table-flat tbody td {
+            vertical-align: middle !important;
+            padding: 9px 12px;
+            font-size: .875rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .table-hover tbody tr:hover { background-color: #f9fbfb; }
+
+        /* Log area */
+        #logArea { border-radius: 0 !important; }
+
+        /* Progress bar in generate */
+        #progressBar { border-radius: 0 !important; }
+
+        /* Tool section toggle border */
+        .tool-section-toggle { border-radius: 0 !important; }
+
+        /* Custom-file border */
+        .custom-file-label { border-radius: 0 !important; }
+        .custom-file-input:focus ~ .custom-file-label { border-color: var(--primary-green); box-shadow: none; }
+
+        /* ---- MODE TAB BUTTONS inside card-header-flat ---- */
+        /* Active tab → kotak putih, teks hijau */
+        .card-header-flat .btn-group .btn-primary {
+            background: rgba(255,255,255,0.95) !important;
+            color: var(--primary-green) !important;
+            border-color: #fff !important;
+            font-weight: 700;
+        }
+        .card-header-flat .btn-group .btn-primary:hover {
+            background: #fff !important;
+        }
+        /* Inactive tab → teks putih redup, transparan */
+        .card-header-flat .btn-group .btn-outline-primary {
+            background: rgba(255,255,255,0.08) !important;
+            color: rgba(255,255,255,0.55) !important;
+            border-color: rgba(255,255,255,0.3) !important;
+            font-weight: 600;
+        }
+        .card-header-flat .btn-group .btn-outline-primary:hover:not(:disabled) {
+            background: rgba(255,255,255,0.2) !important;
+            color: rgba(255,255,255,0.9) !important;
+            border-color: rgba(255,255,255,0.55) !important;
+        }
+        /* Disabled (belum diaktifkan) */
+        .card-header-flat .btn-group .btn-outline-primary:disabled,
+        .card-header-flat .btn-group .btn-outline-primary[disabled] {
+            background: rgba(255,255,255,0.04) !important;
+            color: rgba(255,255,255,0.22) !important;
+            border-color: rgba(255,255,255,0.12) !important;
+            cursor: not-allowed;
+        }
+
+        /* Context upload section animation */
+        #uploadSectionMain, #uploadSectionAssignment {
+            transition: opacity .2s ease;
+        }
+
+        /* ---- DRAGGABLE OVERLAYS untuk JP/Assignment (Nama & Event) ---- */
+        .at-draggable {
+            position: absolute;
+            cursor: move;
+            border: 1px dashed rgba(39, 174, 96, 0.7);
+            background: rgba(255, 255, 255, 0.82);
+            color: #155724;
+            padding: 3px 9px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            user-select: none;
+            z-index: 30;
+            transition: border 0.1s, background 0.1s;
+            pointer-events: auto;
+        }
+        .at-draggable:hover {
+            border: 1px solid var(--primary-green);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 8px rgba(39,174,96,.25);
+        }
+        .at-draggable.at-active {
+            border: 2px solid var(--primary-green);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(39,174,96,.35);
+            z-index: 50;
+        }
+        /* Label kecil di atas overlay */
+        .at-draggable::before {
+            content: attr(data-at-key);
+            position: absolute;
+            top: -17px;
+            left: 0;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--primary-green);
+            color: #fff;
+            padding: 1px 5px;
+            white-space: nowrap;
+            letter-spacing: .4px;
+        }
+        #at_event::before { content: "Event & Tanggal"; }
+        #at_nama::before  { content: "Nama"; }
+        #at_npm::before   { content: "NPM"; }
+    </style>
+
     <div class="container-fluid pb-5">
 
         <div class="row">
             {{-- KOLOM KIRI: TOOLS & PROPERTIES --}}
             <div class="col-lg-3 col-md-12 mb-4">
 
-                <div class="card card-primary card-outline shadow-sm h-100">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-sliders-h mr-2"></i>Editor Tools</h3>
+                <div class="card border-0 h-100" style="border:1px solid #dee2e6!important;">
+                    <div class="card-header-flat d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0" style="font-size:.97rem;">
+                            <i class="fas fa-sliders-h mr-2"></i> Editor Tools
+                        </h5>
+                        <a href="{{ route('certificates.index') }}"
+                           class="btn btn-sm"
+                           style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);font-size:.78rem;">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                        </a>
                     </div>
 
                     <div class="card-body p-3">
 
-                        {{-- 1. SETUP AWAL --}}
+                        {{-- 1. UPLOAD BACKGROUND (context-sensitive per mode) --}}
                         <div class="mb-4 pb-3 border-bottom">
-                            <label class="font-weight-bold small text-muted text-uppercase mb-2">1. Upload Background</label>
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="bgFile" accept="image/jpeg,image/png">
-                                <label class="custom-file-label" for="bgFile">Pilih Gambar...</label>
+
+                            {{-- MAIN CERTIFICATE upload --}}
+                            <div id="uploadSectionMain">
+                                <label class="font-weight-bold small text-muted text-uppercase mb-2">
+                                    <i class="fas fa-image mr-1"></i> 1. Background Sertifikat Utama
+                                </label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="bgFile" accept="image/jpeg,image/png">
+                                    <label class="custom-file-label" for="bgFile">Pilih Gambar...</label>
+                                </div>
+                                <small class="text-muted d-block mt-1">Gunakan file JPG/PNG (Landscape A4).</small>
                             </div>
-                            <small class="text-muted d-block mt-1">Gunakan file JPG/PNG (Landscape A4).</small>
+
+                            {{-- JP/ASSIGNMENT upload (tampil saat JP mode aktif) --}}
+                            <div id="uploadSectionAssignment" style="display:none;">
+                                <label class="font-weight-bold small text-muted text-uppercase mb-2">
+                                    <i class="fas fa-image mr-1"></i> 1. Background JP / Assignment
+                                </label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="assignmentBgFileDirect" accept="image/jpeg,image/png">
+                                    <label class="custom-file-label" for="assignmentBgFileDirect">Pilih Gambar...</label>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    JPG/PNG Landscape A4. Biarkan kosong untuk pakai background sertifikat utama.
+                                </small>
+                            </div>
+
                         </div>
 
                         {{-- 2. INPUT KONTEN --}}
@@ -254,7 +445,8 @@
                                 </div>
 
                                 <div id="assignmentSettingsPanel" style="display:none;">
-                                    <div class="form-group mb-2">
+                                    {{-- Background source (disembunyikan saat JP tab aktif, digantikan Section 1) --}}
+                                    <div class="form-group mb-2" id="assignmentBgSourceGroup">
                                         <label class="small d-block mb-1">Background JP / Assignment</label>
 
                                         <div class="custom-control custom-radio">
@@ -274,13 +466,24 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-group mb-2">
-                                        <label class="small mb-1">Judul Halaman</label>
-                                        <input type="text" id="assignmentTitle" class="form-control form-control-sm" value="Rekap JP / Point Assignment">
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label class="small mb-1">Subjudul</label>
-                                        <input type="text" id="assignmentSubtitle" class="form-control form-control-sm" value="Ringkasan capaian pembelajaran peserta">
+                                    {{-- Judul/Subjudul dihapus; Event & Tanggal jadi header default otomatis --}}
+                                    <input type="hidden" id="assignmentTitle" value="">
+                                    <input type="hidden" id="assignmentSubtitle" value="">
+
+                                    {{-- Variabel Tambahan (Nama & NPM) --}}
+                                    <div class="mb-3 p-2" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                                        <label class="small font-weight-bold d-block mb-2"
+                                               style="color:#7f8c8d; text-transform:uppercase; letter-spacing:.4px; font-size:10px;">
+                                            <i class="fas fa-plus-circle mr-1" style="color:var(--primary-green);"></i> Variabel Tambahan
+                                        </label>
+                                        <div class="custom-control custom-switch mb-1">
+                                            <input type="checkbox" class="custom-control-input" id="toggleVarNama">
+                                            <label class="custom-control-label small" for="toggleVarNama">Tampilkan Nama</label>
+                                        </div>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="toggleVarNpm">
+                                            <label class="custom-control-label small" for="toggleVarNpm">Tampilkan NPM</label>
+                                        </div>
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -290,6 +493,20 @@
                                         </button>
                                     </div>
                                     <div id="assignmentColumnsEditor" class="mb-2"></div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="small mb-0">Isi Tabel</label>
+                                        <button type="button" class="btn btn-xs btn-outline-primary" id="btnAddAssignmentRow">
+                                            <i class="fas fa-plus mr-1"></i> Tambah Baris
+                                        </button>
+                                    </div>
+
+                                    <div class="table-responsive border rounded mb-2" style="max-height: 240px;">
+                                        <table class="table table-sm table-bordered mb-0">
+                                            <thead class="thead-light" id="assignmentRowsHead"></thead>
+                                            <tbody id="assignmentRowsBody"></tbody>
+                                        </table>
+                                    </div>
 
                                     <div class="border rounded p-2 mb-2">
                                         <label class="small font-weight-bold d-block mb-2">Layout Tabel</label>
@@ -325,20 +542,6 @@
                                             <input type="checkbox" class="custom-control-input" id="assignmentTableShowTotal">
                                             <label class="custom-control-label small" for="assignmentTableShowTotal">Tampilkan baris TOTAL</label>
                                         </div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <label class="small mb-0">Isi Tabel</label>
-                                        <button type="button" class="btn btn-xs btn-outline-primary" id="btnAddAssignmentRow">
-                                            <i class="fas fa-plus mr-1"></i> Tambah Baris
-                                        </button>
-                                    </div>
-
-                                    <div class="table-responsive border rounded mb-2" style="max-height: 240px;">
-                                        <table class="table table-sm table-bordered mb-0">
-                                            <thead class="thead-light" id="assignmentRowsHead"></thead>
-                                            <tbody id="assignmentRowsBody"></tbody>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -412,15 +615,14 @@
                             </div>
                         </div>
 
-                        <hr>
-
-                        {{-- AKSI --}}
-                        <button id="btnSaveTemplate" class="btn btn-outline-success btn-block btn-sm mb-2">
-                            <i class="fas fa-save mr-1"></i> Simpan Template
-                        </button>
-                        <button id="btnGenerate" class="btn btn-primary btn-block shadow">
-                            <i class="fas fa-magic mr-1"></i> Generate Sertifikat
-                        </button>
+                        <div style="border-top:1px solid #e2e8f0; padding-top:12px; margin-top:4px;">
+                            <button id="btnSaveTemplate" class="btn btn-outline-success btn-block btn-sm mb-2" style="font-weight:700;">
+                                <i class="fas fa-save mr-1"></i> Simpan Template
+                            </button>
+                            <button id="btnGenerate" class="btn btn-primary btn-block" style="font-weight:700; font-size:.95rem; padding:9px;">
+                                <i class="fas fa-magic mr-1"></i> Generate Sertifikat
+                            </button>
+                        </div>
 
                     </div>
                 </div>
@@ -430,15 +632,19 @@
             {{-- KOLOM KANAN: WORKSPACE --}}
             <div class="col-lg-9 col-md-12 mb-4">
 
-                <div class="card card-outline card-dark shadow-sm h-100">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h3 class="card-title font-weight-bold">Visual Designer</h3>
-                        <div class="card-tools">
-                            <div class="btn-group btn-group-sm mr-2" id="designerModeGroup">
+                <div class="card border-0 h-100" style="border:1px solid #dee2e6!important;">
+                    <div class="card-header-flat d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0" style="font-size:.97rem;">
+                            <i class="fas fa-paint-brush mr-2"></i> Visual Designer
+                        </h5>
+                        <div class="d-flex align-items-center" style="gap:8px;">
+                            <div class="btn-group btn-group-sm" id="designerModeGroup">
                                 <button type="button" id="modeMainDesigner" class="btn btn-primary">Sertifikat Utama</button>
                                 <button type="button" id="modeAssignmentDesigner" class="btn btn-outline-primary" disabled>JP / Assignment</button>
                             </div>
-                            <span class="badge badge-warning"><i class="fas fa-arrows-alt mr-1"></i> Drag & Drop Mode</span>
+                            <span class="badge badge-warning" style="border-radius:0!important;">
+                                <i class="fas fa-arrows-alt mr-1"></i> Drag & Drop
+                            </span>
                         </div>
                     </div>
 
@@ -459,6 +665,27 @@
 
                             <div class="canvas-wrapper" id="assignmentCanvasWrapper" style="display:none; line-height:1; background:#fff;">
                                 <canvas id="assignmentPreviewCanvas"></canvas>
+
+                                {{-- Overlay draggable JP/Assignment --}}
+                                {{-- Event & Tanggal: selalu tampil di JP mode, posisi default = atas tengah --}}
+                                <div class="at-draggable" id="at_event" data-at-key="event"
+                                     style="display:none; left:35%; top:9%;">
+                                    <i class="fas fa-grip-lines" style="font-size:9px; margin-right:4px; opacity:.7;"></i>
+                                    <span>Event &amp; Tanggal</span>
+                                </div>
+                                {{-- Nama: opsional, hanya tampil jika diaktifkan --}}
+                                <div class="at-draggable" id="at_nama" data-at-key="nama"
+                                     style="display:none; left:8%; top:18%;">
+                                    <i class="fas fa-grip-lines" style="font-size:9px; margin-right:4px; opacity:.7;"></i>
+                                    <span>Nama</span>
+                                </div>
+                                {{-- NPM: opsional, hanya tampil jika diaktifkan --}}
+                                <div class="at-draggable" id="at_npm" data-at-key="npm"
+                                     style="display:none; left:8%; top:22%;">
+                                    <i class="fas fa-grip-lines" style="font-size:9px; margin-right:4px; opacity:.7;"></i>
+                                    <span>NPM</span>
+                                </div>
+
                                 <div id="assignmentTableOverlay" class="assignment-table-overlay" style="display:none;">
                                     <span class="assignment-overlay-label">Edit Tabel</span>
                                     <div id="assignmentColumnHandles"></div>
@@ -493,21 +720,23 @@
         {{-- ROW BAWAH: DATA PESERTA & FORM TAMBAH MANUAL --}}
         <div class="row">
             <div class="col-12">
-                <div class="card card-outline card-success shadow-sm">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-users mr-2"></i>Data Peserta & Kehadiran</h3>
-                        <div class="card-tools">
-                            {{-- TOMBOL TOGGLE TAMBAH PESERTA --}}
-                            <button type="button" class="btn btn-sm btn-success" id="btnToggleAddParticipant">
-                                <i class="fas fa-user-plus mr-1"></i> Tambah Manual
-                            </button>
-                        </div>
+                <div class="card border-0" style="border:1px solid #dee2e6!important;">
+                    <div class="card-header-flat d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0" style="font-size:.97rem;">
+                            <i class="fas fa-users mr-2"></i> Data Peserta & Kehadiran
+                        </h5>
+                        <button type="button" class="btn btn-sm btn-success" id="btnToggleAddParticipant"
+                                style="font-size:.78rem; font-weight:700; border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.15); color:#fff;">
+                            <i class="fas fa-user-plus mr-1"></i> Tambah Manual
+                        </button>
                     </div>
 
                     {{-- FORM TAMBAH PESERTA MANUAL (COLLAPSIBLE) --}}
                     <div class="collapse-anim bg-light border-bottom" id="addParticipantPanel">
                         <div class="card-body">
-                            <h6 class="text-success font-weight-bold mb-3">Form Tambah Peserta Manual</h6>
+                            <h6 class="font-weight-bold mb-3" style="color:var(--primary-green);">
+                                <i class="fas fa-user-plus mr-1"></i> Form Tambah Peserta Manual
+                            </h6>
                             <div class="row align-items-end">
                                 <div class="col-md-4 col-sm-12 mb-2">
                                     <label class="small text-muted mb-1">NPM Mahasiswa</label>
@@ -534,8 +763,8 @@
                     {{-- TABEL PESERTA --}}
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped text-nowrap mb-0">
-                                <thead class="thead-light">
+                            <table class="table table-hover table-flat text-nowrap mb-0">
+                                <thead>
                                 <tr>
                                     <th>Nama Mahasiswa</th>
                                     <th>NPM</th>
@@ -556,15 +785,19 @@
                                         </td>
                                         <td>{{ $reg->mahasiswa->npm_mahasiswa ?? '-' }}</td>
                                         <td>
-                                            <span class="badge badge-secondary">{{ $reg->role ?? 'Peserta' }}</span>
+                                            <span style="background:#f0fdf4;color:#27ae60;border:1px solid #c3e6cb;font-size:10px;padding:2px 7px;font-weight:600;border-radius:0;">
+                                                {{ $reg->role ?? 'Peserta' }}
+                                            </span>
                                         </td>
                                         <td>
                                             @if($reg->certificate_url)
-                                                <a href="{{ asset($reg->certificate_url) }}" target="_blank" class="btn btn-xs btn-outline-primary">
+                                                <a href="{{ asset($reg->certificate_url) }}" target="_blank"
+                                                   class="btn btn-xs btn-outline-primary"
+                                                   style="font-size:.75rem; font-weight:700; padding:3px 8px;">
                                                     <i class="fas fa-file-download mr-1"></i> Download
                                                 </a>
                                             @else
-                                                <span class="text-muted small font-italic">Belum digenerate</span>
+                                                <span class="text-muted" style="font-size:.82rem; font-style:italic;">Belum digenerate</span>
                                             @endif
                                         </td>
                                         <td class="text-center">
@@ -674,6 +907,15 @@
             }
             let assignmentPage = getDefaultAssignmentPage();
 
+            // Global state posisi & visibilitas teks di halaman JP (diakses oleh script terpisah)
+            if (!window._assignTextPos) {
+                window._assignTextPos = {
+                    event_x: null, event_y: null,
+                    nama_enabled: false, nama_x: null, nama_y: null,
+                    npm_enabled:  false, npm_x:  null, npm_y:  null,
+                };
+            }
+
             let activeElementKey = null;
 
             // --- DOM ELEMENTS ---
@@ -753,6 +995,8 @@
             updateNomorPreview(); // Init preview
             refreshDesignerModeButtons();
             refreshDesignerWorkspace();
+            // Expose render function untuk diakses script terpisah (draggable overlays)
+            window._reRenderAssignment = renderAssignmentDesignerPreview;
 
             function setToolSectionState(sectionName, isOpen) {
                 const sectionMap = {
@@ -1003,6 +1247,21 @@
                     show_total: typeof rawTableSettings.show_total === 'boolean' ? rawTableSettings.show_total : fallback.table_settings.show_total,
                 };
 
+                // Restore posisi & visibilitas variabel teks dari template yang tersimpan
+                if (rawPage.text_positions && typeof rawPage.text_positions === 'object') {
+                    const rp = rawPage.text_positions;
+                    window._assignTextPos = {
+                        event_x:      typeof rp.event_x === 'number' ? rp.event_x : null,
+                        event_y:      typeof rp.event_y === 'number' ? rp.event_y : null,
+                        nama_enabled: Boolean(rp.nama_enabled),
+                        nama_x:       typeof rp.nama_x  === 'number' ? rp.nama_x  : null,
+                        nama_y:       typeof rp.nama_y  === 'number' ? rp.nama_y  : null,
+                        npm_enabled:  Boolean(rp.npm_enabled),
+                        npm_x:        typeof rp.npm_x   === 'number' ? rp.npm_x   : null,
+                        npm_y:        typeof rp.npm_y   === 'number' ? rp.npm_y   : null,
+                    };
+                }
+
                 return {
                     enabled: Boolean(rawPage.enabled),
                     background_source: rawPage.background_source === 'custom' ? 'custom' : 'main',
@@ -1205,6 +1464,7 @@
                     .map((row) => assignmentPage.columns.map((_, idx) => String(row[idx] ?? '').trim()))
                     .filter((row) => row.some((cell) => cell !== ''));
 
+                const _tp = window._assignTextPos || {};
                 return {
                     enabled: assignmentPage.enabled,
                     background_source: assignmentPage.background_source === 'custom' ? 'custom' : 'main',
@@ -1214,6 +1474,13 @@
                     column_widths: assignmentPage.column_widths.map((width) => clampNumber(width, 1, 1000, 1)),
                     table_settings: { ...assignmentPage.table_settings },
                     rows: rows.length ? rows : [assignmentPage.columns.map(() => '')],
+                    text_positions: (_tp.event_x != null || _tp.nama_x != null || _tp.npm_x != null || _tp.nama_enabled || _tp.npm_enabled)
+                        ? {
+                            event_x: _tp.event_x, event_y: _tp.event_y,
+                            nama_enabled: !!_tp.nama_enabled, nama_x: _tp.nama_x, nama_y: _tp.nama_y,
+                            npm_enabled:  !!_tp.npm_enabled,  npm_x:  _tp.npm_x,  npm_y:  _tp.npm_y,
+                          }
+                        : null,
                 };
             }
 
@@ -1422,9 +1689,11 @@
             }
 
             function getAssignmentPreviewParticipant() {
-                const firstRow = document.querySelector('tbody tr[id^="row-reg-"] td span.font-weight-bold');
+                const firstRow     = document.querySelector('tbody tr[id^="row-reg-"] td span.font-weight-bold');
+                const firstNpmCell = document.querySelector('tbody tr[id^="row-reg-"] td:nth-child(2)');
                 return {
-                    nama: firstRow ? firstRow.textContent.trim() : 'Nama Peserta',
+                    nama: firstRow     ? firstRow.textContent.trim()     : 'Nama Peserta',
+                    npm:  firstNpmCell ? firstNpmCell.textContent.trim() : '000000000',
                     role: 'Peserta',
                 };
             }
@@ -1503,12 +1772,11 @@
                 columnWidths[columnWidths.length - 1] += (tableWidth - usedColumnWidth);
 
                 let tableStartY = marginY;
-                tableStartY += Math.round(canvasHeight * 0.055);
-                if (assignmentConfig.subtitle) {
-                    tableStartY += Math.round(canvasHeight * 0.035);
-                }
-                tableStartY += Math.round(canvasHeight * 0.028);
-                tableStartY += Math.round(canvasHeight * 0.02);
+                tableStartY += Math.round(canvasHeight * 0.05);  // Event & Tanggal header
+                const _atpM = (typeof window !== 'undefined' && window._assignTextPos) || {};
+                if (_atpM.nama_enabled) tableStartY += Math.round(canvasHeight * 0.028);
+                if (_atpM.npm_enabled)  tableStartY += Math.round(canvasHeight * 0.028);
+                tableStartY += Math.round(canvasHeight * 0.015); // padding sebelum tabel
                 tableStartY = Math.max(tableStartY, tableY);
 
                 const reservedTotalHeight = tableSettings.show_total ? rowHeight : 0;
@@ -2211,23 +2479,36 @@
                 let cursorY = marginY;
                 ctx.textBaseline = 'top';
                 ctx.fillStyle = tableSettings.text_color;
-                ctx.textAlign = 'center';
-                ctx.font = `700 ${Math.max(28, Math.round(width * 0.02))}px ${assignmentFontFamily}`;
-                ctx.fillText(assignmentConfig.title || 'Rekap JP / Point Assignment', width / 2, cursorY);
-                cursorY += Math.round(height * 0.055);
+                const _atp = (typeof window !== 'undefined' && window._assignTextPos) || {};
 
-                if (assignmentConfig.subtitle) {
-                    ctx.font = `${Math.max(16, Math.round(width * 0.011))}px ${assignmentFontFamily}`;
-                    ctx.fillText(assignmentConfig.subtitle, width / 2, cursorY);
-                    cursorY += Math.round(height * 0.035);
-                }
+                // ── Event & Tanggal (header utama, selalu tampil) ──────────────────
+                const _evX = _atp.event_x != null ? Math.round(_atp.event_x * width  / 100) : (width / 2);
+                const _evY = _atp.event_y != null ? Math.round(_atp.event_y * height / 100) : cursorY;
+                ctx.textAlign = _atp.event_x != null ? 'left' : 'center';
+                ctx.font = `700 ${Math.max(24, Math.round(width * 0.018))}px ${assignmentFontFamily}`;
+                ctx.fillText(`${eventName}  |  ${eventDate}`, _evX, _evY);
+                cursorY += Math.round(height * 0.05);
 
                 ctx.textAlign = 'left';
                 ctx.font = `600 ${Math.max(14, Math.round(width * 0.0105))}px ${assignmentFontFamily}`;
-                ctx.fillText(`Nama Peserta: ${participant.nama || '-'}`, marginX, cursorY);
-                cursorY += Math.round(height * 0.028);
-                ctx.fillText(`Event: ${eventName} | Tanggal: ${eventDate}`, marginX, cursorY);
-                cursorY += Math.round(height * 0.02);
+
+                // ── Nama (variabel opsional) ──────────────────────────────────────
+                if (_atp.nama_enabled) {
+                    const _namaX = _atp.nama_x != null ? Math.round(_atp.nama_x * width  / 100) : marginX;
+                    const _namaY = _atp.nama_y != null ? Math.round(_atp.nama_y * height / 100) : cursorY;
+                    ctx.fillText(`Nama: ${participant.nama || '-'}`, _namaX, _namaY);
+                    if (_atp.nama_x == null) cursorY += Math.round(height * 0.028);
+                }
+
+                // ── NPM (variabel opsional) ───────────────────────────────────────
+                if (_atp.npm_enabled) {
+                    const _npmX = _atp.npm_x != null ? Math.round(_atp.npm_x * width  / 100) : marginX;
+                    const _npmY = _atp.npm_y != null ? Math.round(_atp.npm_y * height / 100) : cursorY;
+                    ctx.fillText(`NPM: ${participant.npm || '-'}`, _npmX, _npmY);
+                    if (_atp.npm_x == null) cursorY += Math.round(height * 0.028);
+                }
+
+                cursorY += Math.round(height * 0.015);
                 cursorY = Math.max(cursorY, tableY);
 
                 ctx.fillStyle = tableSettings.header_bg;
@@ -2464,5 +2745,176 @@
             });
 
         });
+    </script>
+
+    {{-- Context-aware upload + JP draggable overlays (Event, Nama, NPM) --}}
+    <script>
+    (function () {
+        'use strict';
+
+        if (!window._assignTextPos) {
+            window._assignTextPos = {
+                event_x: null, event_y: null,
+                nama_enabled: false, nama_x: null, nama_y: null,
+                npm_enabled:  false, npm_x:  null, npm_y:  null,
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var mainSection    = document.getElementById('uploadSectionMain');
+            var jpSection      = document.getElementById('uploadSectionAssignment');
+            var bgSourceGroup  = document.getElementById('assignmentBgSourceGroup');
+            var modeMainBtn    = document.getElementById('modeMainDesigner');
+            var modeJpBtn      = document.getElementById('modeAssignmentDesigner');
+            var directInput    = document.getElementById('assignmentBgFileDirect');
+            var directLabel    = document.querySelector('label[for="assignmentBgFileDirect"]');
+            var realInput      = document.getElementById('assignmentBgFile');
+            var realLabel      = document.querySelector('label[for="assignmentBgFile"]');
+            var bgSourceCustom = document.getElementById('assignmentBgSourceCustom');
+            var canvas         = document.getElementById('assignmentPreviewCanvas');
+            var elEvent        = document.getElementById('at_event');
+            var elNama         = document.getElementById('at_nama');
+            var elNpm          = document.getElementById('at_npm');
+            var toggleNama     = document.getElementById('toggleVarNama');
+            var toggleNpm      = document.getElementById('toggleVarNpm');
+
+            function isJpActive() {
+                return !!(modeJpBtn && !modeJpBtn.disabled && modeJpBtn.classList.contains('btn-primary'));
+            }
+
+            // ── POSISI OVERLAY DARI _assignTextPos ─────────────────
+            function applyOverlayPositions() {
+                var p = window._assignTextPos || {};
+                if (elEvent) {
+                    elEvent.style.left = (p.event_x != null ? p.event_x : 35) + '%';
+                    elEvent.style.top  = (p.event_y != null ? p.event_y : 9)  + '%';
+                }
+                if (elNama) {
+                    elNama.style.left = (p.nama_x != null ? p.nama_x : 8) + '%';
+                    elNama.style.top  = (p.nama_y != null ? p.nama_y : 18) + '%';
+                }
+                if (elNpm) {
+                    elNpm.style.left = (p.npm_x != null ? p.npm_x : 8) + '%';
+                    elNpm.style.top  = (p.npm_y != null ? p.npm_y : 22) + '%';
+                }
+            }
+
+            // ── SYNC SEMUA TAMPILAN ────────────────────────────────
+            function syncAll() {
+                var jp  = isJpActive();
+                var pos = window._assignTextPos || {};
+
+                // Upload context
+                if (mainSection)   mainSection.style.display   = jp ? 'none' : '';
+                if (jpSection)     jpSection.style.display     = jp ? ''     : 'none';
+                if (bgSourceGroup) bgSourceGroup.style.display = 'none'; // selalu hidden
+
+                // Event overlay: selalu tampil di JP mode
+                if (elEvent) elEvent.style.display = jp ? '' : 'none';
+
+                // Nama & NPM: hanya tampil jika JP aktif DAN masing-masing di-enable
+                if (elNama) elNama.style.display = (jp && pos.nama_enabled) ? '' : 'none';
+                if (elNpm)  elNpm.style.display  = (jp && pos.npm_enabled)  ? '' : 'none';
+
+                // Sync toggle checkbox states dari _assignTextPos (mis: setelah template load)
+                if (toggleNama) toggleNama.checked = !!pos.nama_enabled;
+                if (toggleNpm)  toggleNpm.checked  = !!pos.npm_enabled;
+
+                if (jp) applyOverlayPositions();
+            }
+
+            // ── DRAG LOGIC ─────────────────────────────────────────
+            var dragging = null; // 'event' | 'nama' | 'npm' | null
+            var startMX, startMY, startLeft, startTop;
+
+            function getOverlayEl(key) {
+                return key === 'event' ? elEvent : key === 'nama' ? elNama : elNpm;
+            }
+
+            function startDrag(e, key) {
+                e.preventDefault();
+                dragging  = key;
+                startMX   = e.clientX;
+                startMY   = e.clientY;
+                var el    = getOverlayEl(key);
+                startLeft = parseFloat(el.style.left) || 0;
+                startTop  = parseFloat(el.style.top)  || 0;
+                el.classList.add('at-active');
+            }
+
+            document.addEventListener('mousemove', function (e) {
+                if (!dragging || !canvas) return;
+                var rect  = canvas.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+                var el    = getOverlayEl(dragging);
+                var newX  = Math.max(0, Math.min(95, startLeft + (e.clientX - startMX) / rect.width  * 100));
+                var newY  = Math.max(0, Math.min(95, startTop  + (e.clientY - startMY) / rect.height * 100));
+                el.style.left = newX + '%';
+                el.style.top  = newY + '%';
+            });
+
+            document.addEventListener('mouseup', function () {
+                if (!dragging) return;
+                var el  = getOverlayEl(dragging);
+                var key = dragging;
+                el.classList.remove('at-active');
+                var newX = Math.round(parseFloat(el.style.left) * 10) / 10;
+                var newY = Math.round(parseFloat(el.style.top)  * 10) / 10;
+                var p    = window._assignTextPos;
+                if      (key === 'event') { p.event_x = newX; p.event_y = newY; }
+                else if (key === 'nama')  { p.nama_x  = newX; p.nama_y  = newY; }
+                else                      { p.npm_x   = newX; p.npm_y   = newY; }
+                dragging = null;
+                if (typeof window._reRenderAssignment === 'function') window._reRenderAssignment();
+            });
+
+            if (elEvent) elEvent.addEventListener('mousedown', function (e) { startDrag(e, 'event'); });
+            if (elNama)  elNama.addEventListener('mousedown',  function (e) { startDrag(e, 'nama');  });
+            if (elNpm)   elNpm.addEventListener('mousedown',   function (e) { startDrag(e, 'npm');   });
+
+            // ── TOGGLE VARIABEL NAMA & NPM ─────────────────────────
+            function onToggle(key, checked) {
+                window._assignTextPos[key + '_enabled'] = checked;
+                syncAll();
+                if (typeof window._reRenderAssignment === 'function') window._reRenderAssignment();
+            }
+
+            if (toggleNama) toggleNama.addEventListener('change', function () { onToggle('nama', this.checked); });
+            if (toggleNpm)  toggleNpm.addEventListener('change',  function () { onToggle('npm',  this.checked); });
+
+            // ── FORWARD UPLOAD JP → REAL INPUT ────────────────────
+            if (directInput && realInput) {
+                directInput.addEventListener('change', function () {
+                    var file = this.files && this.files[0];
+                    if (!file) return;
+                    if (directLabel) directLabel.textContent = file.name;
+                    if (bgSourceCustom) {
+                        bgSourceCustom.checked = true;
+                        bgSourceCustom.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    try {
+                        var dt = new DataTransfer();
+                        dt.items.add(file);
+                        realInput.files = dt.files;
+                        if (realLabel) realLabel.textContent = file.name;
+                        realInput.dispatchEvent(new Event('change'));
+                    } catch (err) {
+                        console.warn('[JP Upload] DataTransfer fallback:', err);
+                    }
+                });
+            }
+
+            // ── MODE BUTTON LISTENERS ──────────────────────────────
+            if (modeMainBtn) modeMainBtn.addEventListener('click', function () { setTimeout(syncAll, 90); });
+            if (modeJpBtn)   modeJpBtn.addEventListener('click',   function () { setTimeout(syncAll, 90); });
+
+            // Sync toggle states setelah template selesai dimuat (loadTemplateFromServer ~async)
+            setTimeout(syncAll, 1800);
+
+            // Sync awal
+            syncAll();
+        });
+    })();
     </script>
 @endsection

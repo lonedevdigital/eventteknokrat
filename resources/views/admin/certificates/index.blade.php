@@ -3,325 +3,252 @@
 
 @section('content')
 
-    <style>
-        /* --- THEME VARIABLES & RESET --- */
-        :root {
-            --primary-green: #27ae60;
-            --primary-green-dark: #219150;
-            --text-grey: #2c3e50;
-        }
+<style>
+    :root {
+        --primary-green: #27ae60;
+        --primary-green-dark: #219150;
+        --accent-red: #e74c3c;
+        --bg-light: #ecf0f1;
+        --text-grey: #2c3e50;
+    }
 
-        /* Global Flat Reset */
-        .card, .btn, .badge, .alert, .form-control, .pagination .page-item .page-link {
-            border-radius: 0 !important;
-            box-shadow: none !important;
-        }
+    .card, .btn, .form-control, .input-group-text,
+    .badge, .custom-select {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border-color: #dee2e6;
+    }
 
-        /* --- CARD STYLE --- */
-        .card-sharp {
-            border: 1px solid #dee2e6;
-            background: #fff;
-            margin-bottom: 20px;
-        }
+    .card-header-flat {
+        background-color: var(--primary-green);
+        color: #fff;
+        padding: 12px 20px;
+        border-bottom: none;
+    }
 
-        /* Header Hijau Flat */
-        .card-header-flat {
-            background-color: var(--primary-green);
-            color: #ffffff;
-            padding: 15px 20px;
-            border-bottom: none;
-        }
+    .btn-green {
+        background-color: var(--primary-green);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+    }
+    .btn-green:hover { background-color: var(--primary-green-dark); color: #fff; }
 
-        /* --- TABLE STYLE --- */
-        .table-flat thead th {
-            background-color: #f8fafc;
-            color: #64748b;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            border-bottom: 2px solid #e2e8f0;
-            border-top: none;
-            padding: 12px 15px;
-            vertical-align: middle;
-            letter-spacing: 0.5px;
-        }
-        .table-flat td {
-            vertical-align: middle !important;
-            padding: 15px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid #f1f5f9;
-            color: var(--text-grey);
-        }
+    .btn-action-flat {
+        border: none;
+        color: #fff;
+        padding: 5px 14px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .btn-action-flat:hover { color: #fff; opacity: 0.88; }
+    .btn-green-flat { background-color: var(--primary-green); }
+    .btn-grey-flat  { background-color: #95a5a6; }
 
-        /* --- CHECKLIST STYLE --- */
-        .checklist-item {
-            display: flex;
-            align-items: flex-start; /* Align top agar teks panjang aman */
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-        }
-        .checklist-icon {
-            min-width: 24px;
-            text-align: center;
-            margin-right: 10px;
-            padding-top: 2px; /* Sedikit turun agar sejajar teks */
-            font-size: 1rem;
-        }
-        .text-green-theme { color: var(--primary-green); }
+    .table-flat thead th {
+        background-color: var(--bg-light);
+        color: #7f8c8d;
+        border-bottom: 2px solid #bdc3c7;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        vertical-align: middle;
+    }
+    .table-flat tbody td {
+        vertical-align: middle !important;
+        color: var(--text-grey);
+        padding: 10px 12px;
+    }
+    .table-hover tbody tr:hover { background-color: #f9fbfb; }
 
-        /* --- BUTTONS --- */
-        .btn-green {
-            background-color: var(--primary-green);
-            color: #fff;
-            border: none;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .btn-green:hover {
-            background-color: var(--primary-green-dark);
-            color: #fff;
-        }
-    </style>
+    .badge-kategori {
+        background-color: #e8f5e9;
+        color: var(--primary-green);
+        border: 1px solid var(--primary-green);
+        font-size: 10px;
+        padding: 2px 7px;
+        font-weight: 600;
+    }
+</style>
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
+<div class="container-fluid">
 
-                {{-- FILTER SECTION --}}
-                <div class="card card-sharp border-0 mb-3">
-                    <div class="card-header-flat py-2" data-toggle="collapse" data-target="#filterCollapse" style="cursor: pointer;">
-                        <h4 class="card-title font-weight-bold mb-0" style="font-size: 1rem;">
-                            <i class="fas fa-filter mr-2"></i> Filter & Pencarian
-                        </h4>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool text-white">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collapse show" id="filterCollapse">
-                        <div class="card-body bg-light p-3">
-                            <form action="{{ route('certificates.index') }}" method="GET">
-                                <div class="row">
-                                    {{-- Search --}}
-                                    <div class="col-md-3 mb-2">
-                                        <label class="small font-weight-bold">Cari Event</label>
-                                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Nama Event..." value="{{ request('search') }}">
-                                    </div>
+    @if(session('success'))
+    <div class="alert fade show mb-3" style="background-color:#2ecc71;color:#fff;border:none;border-radius:0;">
+        <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" style="color:#fff;opacity:1"><span>&times;</span></button>
+    </div>
+    @endif
 
-                                    {{-- Date Range --}}
-                                    <div class="col-md-2 mb-2">
-                                        <label class="small font-weight-bold">Dari Tanggal</label>
-                                        <input type="date" name="start_date" class="form-control form-control-sm" value="{{ request('start_date') }}">
-                                    </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label class="small font-weight-bold">Sampai Tanggal</label>
-                                        <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request('end_date') }}">
-                                    </div>
+    <div class="card border-0">
 
-                                    {{-- Month --}}
-                                    <div class="col-md-2 mb-2">
-                                        <label class="small font-weight-bold">Bulan</label>
-                                        <select name="month" class="form-control form-control-sm">
-                                            <option value="">-- Semua --</option>
-                                            @foreach(range(1, 12) as $m)
-                                                <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>
-                                                    {{ date('F', mktime(0, 0, 0, $m, 1)) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+        <div class="card-header-flat d-flex align-items-center justify-content-between">
+            <h3 class="card-title font-weight-bold mb-0" style="font-size:1.1rem;">
+                <i class="fas fa-certificate mr-2"></i> Manajemen Sertifikat Event
+            </h3>
+        </div>
 
-                                    {{-- Year --}}
-                                    <div class="col-md-1 mb-2">
-                                        <label class="small font-weight-bold">Tahun</label>
-                                        <select name="year" class="form-control form-control-sm">
-                                            <option value="">--</option>
-                                            @for($y = date('Y'); $y >= 2020; $y--)
-                                                <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                                            @endfor
-                                        </select>
-                                    </div>
+        <div class="card-body p-0">
 
-                                    {{-- Limit --}}
-                                    <div class="col-md-2 mb-2">
-                                        <label class="small font-weight-bold">Baris</label>
-                                        <select name="limit" class="form-control form-control-sm">
-                                            @foreach([20, 30, 40, 50, 100] as $lim)
-                                                <option value="{{ $lim }}" {{ request('limit') == $lim ? 'selected' : '' }}>{{ $lim }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    {{-- Buttons --}}
-                                    <div class="col-md-12 text-right mt-2">
-                                        <a href="{{ route('certificates.index') }}" class="btn btn-secondary btn-sm mr-1">
-                                            <i class="fas fa-undo"></i> Reset
-                                        </a>
-                                        <button type="submit" class="btn btn-green btn-sm">
-                                            <i class="fas fa-search"></i> Terapkan Filter
-                                        </button>
-                                    </div>
+            {{-- Filter --}}
+            <div class="p-3" style="background-color:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                <form action="{{ route('certificates.index') }}" method="GET" class="mb-0">
+                    <div class="form-row align-items-center">
+                        <div class="col-12 col-lg-3 mb-2 mb-lg-0">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white text-muted border-right-0">
+                                        <i class="fas fa-search"></i>
+                                    </span>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card card-sharp border-0">
-
-                    {{-- HEADER HIJAU FLAT --}}
-                    <div class="card-header-flat d-flex justify-content-between align-items-center">
-                        <h3 class="card-title font-weight-bold mb-0" style="font-size: 1.1rem;">
-                            <i class="fas fa-certificate mr-2"></i> Manajemen Sertifikat Event
-                        </h3>
-                    </div>
-
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped table-flat mb-0">
-                                <thead>
-                                <tr>
-                                    <th style="width: 50px;" class="text-center">No</th>
-                                    <th style="min-width: 250px;">Informasi Event</th>
-                                    <th style="min-width: 140px;" class="text-center">Tanggal</th>
-                                    <th class="text-center" style="width: 100px;">Peserta</th>
-                                    <th style="min-width: 250px;">Status Kelengkapan</th>
-                                    <th class="text-center" style="width: 120px;">Aksi</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @forelse ($events as $index => $ev)
-                                    @php
-                                        // Hitung data
-                                        $hadir = $ev->registrations()->where('status', 'attended')->count();
-
-                                        // Cek kelengkapan
-                                        $hasBg = !empty($ev->certificate_background);
-                                        $hasFormat = !empty($ev->certificate_number_format);
-                                    @endphp
-
-                                    <tr>
-                                        {{-- NO --}}
-                                        <td class="text-center text-muted">{{ $loop->iteration }}</td>
-
-                                        {{-- EVENT --}}
-                                        <td>
-                                            <span class="d-block font-weight-bold text-dark mb-1" style="font-size: 1rem;">
-                                                {{ $ev->nama_event }}
-                                            </span>
-                                            <span class="badge badge-light border text-uppercase" style="color: #64748b;">
-                                                <i class="fas fa-tag mr-1 text-xs"></i> {{ $ev->category->nama_kategori ?? 'UMUM' }}
-                                            </span>
-                                        </td>
-
-                                        {{-- TANGGAL --}}
-                                        <td class="text-center">
-                                            @if($ev->tanggal_pelaksanaan)
-                                                <span class="text-secondary font-weight-bold" style="font-size: 0.85rem;">
-                                                    {{ \Carbon\Carbon::parse($ev->tanggal_pelaksanaan)->format('d M Y') }}
-                                                </span>
-                                            @else
-                                                <span class="text-muted">-</span>
-                                            @endif
-                                        </td>
-
-                                        {{-- JUMLAH HADIR --}}
-                                        <td class="text-center">
-                                            <h5 class="mb-0 font-weight-bold text-green-theme">{{ $hadir }}</h5>
-                                            <small class="text-muted" style="font-size: 0.75rem;">Hadir</small>
-                                        </td>
-
-                                        {{-- STATUS KELENGKAPAN --}}
-                                        <td>
-                                            <div class="d-flex flex-column">
-
-                                                {{-- 1. Background Check --}}
-                                                <div class="checklist-item">
-                                                    <div class="checklist-icon">
-                                                        @if($hasBg)
-                                                            <i class="fas fa-check-circle text-green-theme"></i>
-                                                        @else
-                                                            <i class="fas fa-times-circle text-danger"></i>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        <span class="d-block font-weight-bold {{ $hasBg ? 'text-green-theme' : 'text-danger' }}" style="line-height: 1.2;">
-                                                            Template Background
-                                                        </span>
-                                                        <small class="text-muted">
-                                                            {{ $hasBg ? 'Tersedia' : 'Belum diupload' }}
-                                                        </small>
-                                                    </div>
-                                                </div>
-
-                                                {{-- 2. Format Check --}}
-                                                <div class="checklist-item">
-                                                    <div class="checklist-icon">
-                                                        @if($hasFormat)
-                                                            <i class="fas fa-check-circle text-green-theme"></i>
-                                                        @else
-                                                            <i class="fas fa-exclamation-circle text-warning"></i>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        <span class="d-block font-weight-bold {{ $hasFormat ? 'text-green-theme' : 'text-warning' }}" style="line-height: 1.2;">
-                                                            Format Nomor
-                                                        </span>
-                                                        <small class="text-muted">
-                                                            {{ $hasFormat ? 'Terkonfigurasi' : 'Perlu setting' }}
-                                                        </small>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </td>
-
-                                        {{-- AKSI --}}
-                                        <td class="text-center">
-                                            <a href="{{ route('certificates.event-detail', $ev->id) }}"
-                                               class="btn btn-green btn-sm px-3 shadow-sm"
-                                               data-toggle="tooltip"
-                                               title="Kelola Sertifikat">
-                                                <i class="fas fa-cog mr-1"></i> KELOLA
-                                            </a>
-                                        </td>
-
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-5">
-                                            <div class="py-3">
-                                                <i class="fas fa-certificate fa-3x mb-3" style="color: #cbd5e1;"></i>
-                                                <h6 class="font-weight-bold text-secondary">Belum Ada Event Selesai</h6>
-                                                <small class="text-muted">Sertifikat hanya tersedia untuk event yang sudah terlaksana.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {{-- Footer/Pagination --}}
-                    @if(method_exists($events, 'links'))
-                        <div class="card-footer bg-white border-top p-3">
-                            <div class="float-right">
-                                {{ $events->appends(request()->query())->links() }}
+                                <input type="text" name="search"
+                                       class="form-control border-left-0"
+                                       placeholder="Cari nama event..."
+                                       value="{{ request('search') }}">
                             </div>
                         </div>
-                    @endif
-
-                </div>
+                        <div class="col-6 col-lg-2 mb-2 mb-lg-0">
+                            <input type="date" name="start_date" class="form-control form-control-sm"
+                                   value="{{ request('start_date') }}">
+                        </div>
+                        <div class="col-6 col-lg-2 mb-2 mb-lg-0">
+                            <input type="date" name="end_date" class="form-control form-control-sm"
+                                   value="{{ request('end_date') }}">
+                        </div>
+                        <div class="col-6 col-lg-1 mb-2 mb-lg-0">
+                            <select name="month" class="form-control form-control-sm custom-select">
+                                <option value="">Bln</option>
+                                @foreach(range(1, 12) as $m)
+                                    <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-6 col-lg-1 mb-2 mb-lg-0">
+                            <select name="year" class="form-control form-control-sm custom-select">
+                                <option value="">Thn</option>
+                                @for($y = date('Y'); $y >= 2020; $y--)
+                                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-12 col-lg-2 mb-2 mb-lg-0">
+                            <div class="btn-group w-100">
+                                <button type="submit" class="btn btn-green btn-sm" style="width:75%;">
+                                    <i class="fas fa-filter mr-1"></i> Filter
+                                </button>
+                                <a href="{{ route('certificates.index') }}"
+                                   class="btn btn-default btn-sm border bg-white text-center"
+                                   style="width:25%;" title="Reset Filter">
+                                    <i class="fas fa-sync-alt text-muted"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </div>
-    </div>
 
-    <script>
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        })
-    </script>
+            {{-- Tabel --}}
+            <div class="table-responsive">
+                <table class="table table-hover table-flat mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center pl-3" style="width:46px;">No</th>
+                            <th style="min-width:220px;">Event</th>
+                            <th class="text-center" style="width:120px;">Tanggal</th>
+                            <th class="text-center" style="width:80px;">Hadir</th>
+                            <th style="width:210px;">Kelengkapan</th>
+                            <th class="text-center" style="width:110px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @forelse($events as $ev)
+                        @php
+                            $hadir     = $ev->registrations()->where('status', 'attended')->count();
+                            $hasBg     = !empty($ev->certificate_background);
+                            $hasFormat = !empty($ev->certificate_number_format);
+                            $isReady   = $hasBg && $hasFormat;
+                        @endphp
+                        <tr>
+                            <td class="text-center pl-3 text-muted">{{ $loop->iteration }}</td>
+
+                            <td>
+                                <div class="font-weight-bold" style="font-size:.93rem;">{{ $ev->nama_event }}</div>
+                                <span class="badge-kategori mt-1 d-inline-block">
+                                    {{ $ev->category->nama_kategori ?? 'Umum' }}
+                                </span>
+                            </td>
+
+                            <td class="text-center text-muted" style="font-size:.85rem;">
+                                {{ $ev->tanggal_pelaksanaan
+                                    ? \Carbon\Carbon::parse($ev->tanggal_pelaksanaan)->format('d M Y')
+                                    : '-' }}
+                            </td>
+
+                            <td class="text-center">
+                                <span class="font-weight-bold" style="font-size:1.1rem; color:var(--primary-green);">{{ $hadir }}</span>
+                                <div class="text-muted" style="font-size:10px;">peserta</div>
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-column" style="gap:4px;">
+                                    <span class="d-inline-flex align-items-center" style="gap:5px; font-size:12px;">
+                                        @if($hasBg)
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <span class="font-weight-bold text-success">Background tersedia</span>
+                                        @else
+                                            <i class="fas fa-times-circle text-danger"></i>
+                                            <span class="text-danger">Background belum diupload</span>
+                                        @endif
+                                    </span>
+                                    <span class="d-inline-flex align-items-center" style="gap:5px; font-size:12px;">
+                                        @if($hasFormat)
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <span class="font-weight-bold text-success">Format nomor siap</span>
+                                        @else
+                                            <i class="fas fa-exclamation-circle text-warning"></i>
+                                            <span class="text-warning">Format nomor belum diatur</span>
+                                        @endif
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                <a href="{{ route('certificates.event-detail', $ev->id) }}"
+                                   class="btn btn-sm btn-action-flat {{ $isReady ? 'btn-green-flat' : 'btn-grey-flat' }}"
+                                   data-toggle="tooltip"
+                                   title="{{ $isReady ? 'Kelola Sertifikat' : 'Belum lengkap, klik untuk melengkapi' }}">
+                                    <i class="fas fa-cog mr-1"></i> KELOLA
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-certificate fa-3x mb-3 d-block" style="opacity:.2; color:#27ae60;"></i>
+                                <strong>Belum ada event selesai</strong>
+                                <div class="small mt-1">Sertifikat hanya tersedia untuk event yang sudah terlaksana.</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        @if(method_exists($events, 'links') && $events->hasPages())
+        <div class="card-footer bg-white border-top p-3">
+            <div class="d-flex justify-content-end">{{ $events->appends(request()->query())->links() }}</div>
+        </div>
+        @endif
+
+    </div>
+</div>
+
+<script>
+    $(function () { $('[data-toggle="tooltip"]').tooltip() });
+</script>
 
 @endsection

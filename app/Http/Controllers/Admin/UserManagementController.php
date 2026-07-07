@@ -14,31 +14,60 @@ class UserManagementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    /**
+     * Role yang boleh dikelola oleh current user.
+     */
+    private function manageableRoles($currentUser): array
+    {
+        if ($currentUser->isSuperUser()) {
+            return [
+                User::LEVEL_BAAK             => 'BAAK',
+                User::LEVEL_KEMAHASISWAAN    => 'Kemahasiswaan',
+                User::LEVEL_PENANGGUNG_JAWAB => 'Penanggung Jawab',
+                User::LEVEL_KETUA_PELAKSANA  => 'Ketua Pelaksana',
+            ];
+        }
+
+        if ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
+            return [
+                User::LEVEL_PENANGGUNG_JAWAB => 'Penanggung Jawab',
+                User::LEVEL_KETUA_PELAKSANA  => 'Ketua Pelaksana',
+            ];
+        }
+
+        return [];
+    }
+
+    public function index(Request $request)
     {
         $currentUser = auth()->user();
-        
-        $query = User::query();
+        $allowedRoles = $this->manageableRoles($currentUser);
 
-        if ($currentUser->isSuperUser()) {
-            // Superuser see: BAAK, Kemahasiswaan, Penanggung Jawab
-            $query->whereIn('role', [
-                User::LEVEL_BAAK,
-                User::LEVEL_KEMAHASISWAAN,
-                User::LEVEL_PENANGGUNG_JAWAB
-            ]);
-        } elseif ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
-            // BAAK/Kemahasiswaan see: Penanggung Jawab only
-            $query->whereIn('role', [
-                User::LEVEL_PENANGGUNG_JAWAB
-            ]);
-        } else {
+        if (empty($allowedRoles)) {
             abort(403, 'Unauthorized action.');
+        }
+
+        $query = User::whereIn('role', array_keys($allowedRoles));
+
+        $filterRole = $request->query('role');
+        if ($filterRole && array_key_exists($filterRole, $allowedRoles)) {
+            $query->where('role', $filterRole);
+        } else {
+            $filterRole = null;
+        }
+
+        $search = $request->query('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('username', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
         }
 
         $users = $query->latest()->get();
 
-        return view('admin.user_management.index', compact('users'));
+        return view('admin.user_management.index', compact('users', 'allowedRoles', 'filterRole', 'search'));
     }
 
     /**
@@ -47,19 +76,9 @@ class UserManagementController extends Controller
     public function create()
     {
         $currentUser = auth()->user();
-        $allowedRoles = [];
+        $allowedRoles = $this->manageableRoles($currentUser);
 
-        if ($currentUser->isSuperUser()) {
-            $allowedRoles = [
-                User::LEVEL_BAAK => 'BAAK',
-                User::LEVEL_KEMAHASISWAAN => 'Kemahasiswaan',
-                User::LEVEL_PENANGGUNG_JAWAB => 'Penanggung Jawab',
-            ];
-        } elseif ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
-            $allowedRoles = [
-                User::LEVEL_PENANGGUNG_JAWAB => 'Penanggung Jawab',
-            ];
-        } else {
+        if (empty($allowedRoles)) {
             abort(403);
         }
 
@@ -73,12 +92,8 @@ class UserManagementController extends Controller
     {
         $currentUser = auth()->user();
         
-        $allowedLevels = [];
-        if ($currentUser->isSuperUser()) {
-            $allowedLevels = [User::LEVEL_BAAK, User::LEVEL_KEMAHASISWAAN, User::LEVEL_PENANGGUNG_JAWAB];
-        } elseif ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
-            $allowedLevels = [User::LEVEL_PENANGGUNG_JAWAB];
-        } else {
+        $allowedLevels = array_keys($this->manageableRoles($currentUser));
+        if (empty($allowedLevels)) {
             abort(403);
         }
 
@@ -175,18 +190,7 @@ class UserManagementController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk mengedit user ini.');
         }
 
-        $allowedRoles = [];
-        if ($currentUser->isSuperUser()) {
-            $allowedRoles = [
-                User::LEVEL_BAAK => 'BAAK',
-                User::LEVEL_KEMAHASISWAAN => 'Kemahasiswaan',
-                User::LEVEL_PENANGGUNG_JAWAB => 'Penanggung Jawab',
-            ];
-        } elseif ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
-            $allowedRoles = [
-                User::LEVEL_PENANGGUNG_JAWAB => 'Penanggung Jawab',
-            ];
-        }
+        $allowedRoles = $this->manageableRoles($currentUser);
 
         return view('admin.user_management.edit', compact('targetUser', 'allowedRoles'));
     }
@@ -203,12 +207,7 @@ class UserManagementController extends Controller
             abort(403);
         }
 
-        $allowedLevels = [];
-        if ($currentUser->isSuperUser()) {
-            $allowedLevels = [User::LEVEL_BAAK, User::LEVEL_KEMAHASISWAAN, User::LEVEL_PENANGGUNG_JAWAB];
-        } elseif ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
-            $allowedLevels = [User::LEVEL_PENANGGUNG_JAWAB];
-        }
+        $allowedLevels = array_keys($this->manageableRoles($currentUser));
 
         $rules = [
             'name' => ['required', 'string', 'max:255'],
@@ -280,17 +279,21 @@ class UserManagementController extends Controller
     private function canManage($currentUser, $targetUser)
     {
         if ($currentUser->isSuperUser()) {
-            // Superuser can manage BAAK, Kemahasiswaan, PJ
+            // Superuser can manage BAAK, Kemahasiswaan, PJ, Ketua Pelaksana
             // Cannot manage other Superusers (convention, optional)
             return in_array($targetUser->role, [
-                User::LEVEL_BAAK, 
-                User::LEVEL_KEMAHASISWAAN, 
-                User::LEVEL_PENANGGUNG_JAWAB
+                User::LEVEL_BAAK,
+                User::LEVEL_KEMAHASISWAAN,
+                User::LEVEL_PENANGGUNG_JAWAB,
+                User::LEVEL_KETUA_PELAKSANA,
             ]);
         }
 
         if ($currentUser->isBaak() || $currentUser->isKemahasiswaan()) {
-            return $targetUser->role === User::LEVEL_PENANGGUNG_JAWAB;
+            return in_array($targetUser->role, [
+                User::LEVEL_PENANGGUNG_JAWAB,
+                User::LEVEL_KETUA_PELAKSANA,
+            ]);
         }
 
         return false;

@@ -19,6 +19,8 @@ class User extends Authenticatable
     const LEVEL_MAHASISWA     = 'mahasiswa';
     const LEVEL_SUPERUSER     = 'superuser';
     const LEVEL_PENANGGUNG_JAWAB = 'penanggung_jawab';
+    const LEVEL_KETUA_PELAKSANA  = 'ketua_pelaksana';
+    const LEVEL_PANITIA          = 'panitia';
 
     /**
      * The attributes that are mass assignable.
@@ -106,6 +108,16 @@ class User extends Authenticatable
         return $this->role === self::LEVEL_PENANGGUNG_JAWAB;
     }
 
+    public function isKetuaPelaksana(): bool
+    {
+        return $this->role === self::LEVEL_KETUA_PELAKSANA;
+    }
+
+    public function isPanitia(): bool
+    {
+        return $this->role === self::LEVEL_PANITIA;
+    }
+
     // BAAK, Kemahasiswaan, Super User dianggap "staff"
     public function isStaff(): bool
     {
@@ -114,6 +126,7 @@ class User extends Authenticatable
             self::LEVEL_KEMAHASISWAAN,
             self::LEVEL_SUPERUSER,
             self::LEVEL_PENANGGUNG_JAWAB,
+            self::LEVEL_KETUA_PELAKSANA,
         ], true);
     }
 }

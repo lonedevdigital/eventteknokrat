@@ -83,6 +83,11 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
+        // Ketua Pelaksana tidak punya akses dashboard utama → arahkan ke Lomba Saya
+        if (strtolower(trim((string) $request->user()?->role)) === 'ketua_pelaksana') {
+            return redirect()->intended(route('lomba.index'));
+        }
+
         return redirect()->intended('/dashboard');
     }
 
@@ -108,6 +113,7 @@ class AuthenticatedSessionController extends Controller
             'baak',
             'kemahasiswaan',
             'penanggung_jawab',
+            'ketua_pelaksana',
             // backward compatibility role lama
             'admin',
             'super_user',
