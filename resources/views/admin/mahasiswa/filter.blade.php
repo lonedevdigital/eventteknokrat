@@ -48,10 +48,10 @@
         </div>
 
         {{-- KOLOM KANAN: TOMBOL SINKRONISASI (Grid 3) --}}
-        <div class="col-lg-3 col-12 mb-2 d-flex align-items-end">
+        <div class="col-lg-3 col-12 mb-2 d-flex flex-column justify-content-end">
 
             @if (!empty($angkatan))
-                <form id="sync-form" method="post" action="{{ route('data-mahasiswa.store') }}" class="w-100">
+                <form id="sync-form" method="post" action="{{ route('data-mahasiswa.store') }}" class="w-100 mb-1">
                     @csrf
                     <input type="hidden" name="angkatan" value="{{ $angkatan }}">
                     <input type="hidden" name="prodi" value="{{ $prodiId }}">
@@ -66,11 +66,20 @@
                 </form>
             @else
                 {{-- Tombol Disabled --}}
-                <button class="btn btn-secondary btn-sm btn-block disabled font-weight-bold" disabled
+                <button class="btn btn-secondary btn-sm btn-block disabled font-weight-bold mb-1" disabled
                         style="opacity: 0.6; cursor: not-allowed; border-radius: 0;">
                     <i class="fa fa-sync-alt mr-1"></i> SINKRONISASI
                 </button>
             @endif
+
+            {{-- TOMBOL SINKRONISASI ALL: ambil data seluruh prodi & seluruh angkatan dari API pusat --}}
+            <form id="sync-all-form" method="post" action="{{ route('data-mahasiswa.sync-all') }}" class="w-100">
+                @csrf
+                <button type="button" id="sync-all-button" class="btn btn-danger btn-sm btn-block font-weight-bold"
+                        title="Sinkronisasi Seluruh Prodi & Angkatan dari API Pusat">
+                    <i class="fa fa-globe mr-1"></i> SINKRONISASI ALL
+                </button>
+            </form>
 
         </div>
 

@@ -16,4 +16,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::resource('/master/mahasiswa', MahasiswaController::class)->names('data-mahasiswa');
+    Route::post('/master/mahasiswa/sync-all', [MahasiswaController::class, 'syncAll'])->name('data-mahasiswa.sync-all');
 });

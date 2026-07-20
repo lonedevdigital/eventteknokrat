@@ -36,6 +36,43 @@
         });
     </script>
 
+    {{-- KONFIRMASI SINKRONISASI ALL (SELURUH PRODI & ANGKATAN) --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const syncAllBtn = document.getElementById('sync-all-button');
+
+            if (syncAllBtn) {
+                syncAllBtn.addEventListener('click', function () {
+                    Swal.fire({
+                        title: 'Yakin ingin Sinkronisasi All?',
+                        text: 'Seluruh data mahasiswa (semua program studi & semua angkatan) akan diambil ulang dari API pusat. Proses ini bisa memakan waktu cukup lama.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, sinkronkan semua!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Sedang memproses...',
+                                text: 'Mohon tunggu, sinkronisasi seluruh data sedang berjalan.',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            document.getElementById('sync-all-form').submit();
+                        }
+                    });
+                });
+            }
+
+        });
+    </script>
+
     {{-- KONFIRMASI RESET PASSWORD (AMAN UNTUK TABEL DINAMIS) --}}
     <script>
         document.addEventListener('click', function (event) {

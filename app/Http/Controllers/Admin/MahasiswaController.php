@@ -92,6 +92,73 @@ class MahasiswaController extends Controller
             ]);
         }
 
+        [$countSynced, $countCreatedUser, $countLinked] = $this->upsertMahasiswaBatch($dataMahasiswa, $angkatan);
+
+        $scope = $prodiId ? "angkatan {$angkatan} (prodi {$prodiId})" : "angkatan {$angkatan}";
+
+        return back()->with([
+            'msg' => "Sinkronisasi API berhasil untuk {$scope}. Diproses: {$countSynced}. User baru: {$countCreatedUser}. Link user_id: {$countLinked}.",
+            'class' => 'alert-success',
+        ]);
+    }
+
+    /**
+     * Sinkronisasi seluruh data mahasiswa (semua prodi, semua angkatan) dari API eksternal.
+     */
+    public function syncAll(Request $request)
+    {
+        ini_set('max_execution_time', '0');
+
+        $tahunAwal = 2015;
+        $tahunAkhir = (int) date('Y');
+
+        $totalSynced = 0;
+        $totalCreatedUser = 0;
+        $totalLinked = 0;
+        $angkatanGagal = [];
+
+        for ($angkatan = $tahunAwal; $angkatan <= $tahunAkhir; $angkatan++) {
+            // Tanpa param prodi, API mahasiswa mengembalikan seluruh prodi untuk angkatan tersebut.
+            $dataMahasiswa = ExternalApiController::getMahasiswa([
+                'angkatan' => (string) $angkatan,
+            ]);
+
+            if (empty($dataMahasiswa)) {
+                $angkatanGagal[] = $angkatan;
+                continue;
+            }
+
+            [$countSynced, $countCreatedUser, $countLinked] = $this->upsertMahasiswaBatch($dataMahasiswa, (string) $angkatan);
+
+            $totalSynced += $countSynced;
+            $totalCreatedUser += $countCreatedUser;
+            $totalLinked += $countLinked;
+        }
+
+        if ($totalSynced === 0) {
+            return back()->with([
+                'msg' => 'Sinkronisasi All gagal. API mahasiswa tidak mengembalikan data untuk seluruh angkatan.',
+                'class' => 'alert-danger',
+            ]);
+        }
+
+        $catatanGagal = !empty($angkatanGagal)
+            ? ' Angkatan tanpa data: ' . implode(', ', $angkatanGagal) . '.'
+            : '';
+
+        return back()->with([
+            'msg' => "Sinkronisasi All berhasil untuk seluruh prodi & angkatan ({$tahunAwal}-{$tahunAkhir}). Diproses: {$totalSynced}. User baru: {$totalCreatedUser}. Link user_id: {$totalLinked}.{$catatanGagal}",
+            'class' => 'alert-success',
+        ]);
+    }
+
+    /**
+     * Upsert satu batch data mahasiswa (hasil API) ke tabel users & mahasiswas.
+     *
+     * @return array{0: int, 1: int, 2: int} [countSynced, countCreatedUser, countLinked]
+     */
+    private function upsertMahasiswaBatch(array $dataMahasiswa, string $angkatanFallback): array
+    {
         $countSynced = 0;
         $countCreatedUser = 0;
         $countLinked = 0;
@@ -103,7 +170,7 @@ class MahasiswaController extends Controller
 
             $npm = (string) $mhs->npm;
             $nama = (string) $mhs->nama;
-            $angkatanValue = isset($mhs->angkatan) ? (string) $mhs->angkatan : $angkatan;
+            $angkatanValue = isset($mhs->angkatan) ? (string) $mhs->angkatan : $angkatanFallback;
 
             $user = User::query()->where('username', $npm)->first();
 
@@ -160,12 +227,7 @@ class MahasiswaController extends Controller
             $countSynced++;
         }
 
-        $scope = $prodiId ? "angkatan {$angkatan} (prodi {$prodiId})" : "angkatan {$angkatan}";
-
-        return back()->with([
-            'msg' => "Sinkronisasi API berhasil untuk {$scope}. Diproses: {$countSynced}. User baru: {$countCreatedUser}. Link user_id: {$countLinked}.",
-            'class' => 'alert-success',
-        ]);
+        return [$countSynced, $countCreatedUser, $countLinked];
     }
 
     /**
