@@ -73,13 +73,10 @@
             @endif
 
             {{-- TOMBOL SINKRONISASI ALL: ambil data seluruh prodi & seluruh angkatan dari API pusat --}}
-            <form id="sync-all-form" method="post" action="{{ route('data-mahasiswa.sync-all') }}" class="w-100">
-                @csrf
-                <button type="button" id="sync-all-button" class="btn btn-danger btn-sm btn-block font-weight-bold"
-                        title="Sinkronisasi Seluruh Prodi & Angkatan dari API Pusat">
-                    <i class="fa fa-globe mr-1"></i> SINKRONISASI ALL
-                </button>
-            </form>
+            <button type="button" id="sync-all-button" class="btn btn-danger btn-sm btn-block font-weight-bold w-100"
+                    title="Sinkronisasi Seluruh Prodi & Angkatan dari API Pusat">
+                <i class="fa fa-globe mr-1"></i> SINKRONISASI ALL
+            </button>
 
         </div>
 

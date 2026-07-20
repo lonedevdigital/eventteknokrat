@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 
 class MahasiswaController extends Controller
 {
+    private const SYNC_ALL_START_YEAR = 2015;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -103,52 +105,54 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * Sinkronisasi seluruh data mahasiswa (semua prodi, semua angkatan) dari API eksternal.
+     * Rentang angkatan yang dicakup oleh Sinkronisasi All (dipakai FE untuk progress bar).
      */
-    public function syncAll(Request $request)
+    public function syncAllRange()
     {
-        ini_set('max_execution_time', '0');
+        return response()->json([
+            'from' => self::SYNC_ALL_START_YEAR,
+            'to' => (int) date('Y'),
+        ]);
+    }
 
-        $tahunAwal = 2015;
-        $tahunAkhir = (int) date('Y');
+    /**
+     * Sinkronisasi satu angkatan (seluruh prodi) dari API eksternal.
+     *
+     * Dipanggil berkali-kali oleh FE (satu request per angkatan) supaya progres
+     * "Mengambil data Prodi dari tahun ..." bisa ditampilkan secara real-time,
+     * alih-alih satu request raksasa yang berjalan lama tanpa umpan balik.
+     */
+    public function syncAllYear(Request $request, string $angkatan)
+    {
+        ini_set('max_execution_time', '300');
 
-        $totalSynced = 0;
-        $totalCreatedUser = 0;
-        $totalLinked = 0;
-        $angkatanGagal = [];
-
-        for ($angkatan = $tahunAwal; $angkatan <= $tahunAkhir; $angkatan++) {
-            // Tanpa param prodi, API mahasiswa mengembalikan seluruh prodi untuk angkatan tersebut.
-            $dataMahasiswa = ExternalApiController::getMahasiswa([
-                'angkatan' => (string) $angkatan,
-            ]);
-
-            if (empty($dataMahasiswa)) {
-                $angkatanGagal[] = $angkatan;
-                continue;
-            }
-
-            [$countSynced, $countCreatedUser, $countLinked] = $this->upsertMahasiswaBatch($dataMahasiswa, (string) $angkatan);
-
-            $totalSynced += $countSynced;
-            $totalCreatedUser += $countCreatedUser;
-            $totalLinked += $countLinked;
+        if (!ctype_digit($angkatan) || strlen($angkatan) !== 4) {
+            return response()->json(['message' => 'Angkatan tidak valid.'], 422);
         }
 
-        if ($totalSynced === 0) {
-            return back()->with([
-                'msg' => 'Sinkronisasi All gagal. API mahasiswa tidak mengembalikan data untuk seluruh angkatan.',
-                'class' => 'alert-danger',
+        // Tanpa param prodi, API mahasiswa mengembalikan seluruh prodi untuk angkatan tersebut.
+        $dataMahasiswa = ExternalApiController::getMahasiswa([
+            'angkatan' => $angkatan,
+        ]);
+
+        if (empty($dataMahasiswa)) {
+            return response()->json([
+                'angkatan' => $angkatan,
+                'has_data' => false,
+                'synced' => 0,
+                'created_user' => 0,
+                'linked' => 0,
             ]);
         }
 
-        $catatanGagal = !empty($angkatanGagal)
-            ? ' Angkatan tanpa data: ' . implode(', ', $angkatanGagal) . '.'
-            : '';
+        [$countSynced, $countCreatedUser, $countLinked] = $this->upsertMahasiswaBatch($dataMahasiswa, $angkatan);
 
-        return back()->with([
-            'msg' => "Sinkronisasi All berhasil untuk seluruh prodi & angkatan ({$tahunAwal}-{$tahunAkhir}). Diproses: {$totalSynced}. User baru: {$totalCreatedUser}. Link user_id: {$totalLinked}.{$catatanGagal}",
-            'class' => 'alert-success',
+        return response()->json([
+            'angkatan' => $angkatan,
+            'has_data' => true,
+            'synced' => $countSynced,
+            'created_user' => $countCreatedUser,
+            'linked' => $countLinked,
         ]);
     }
 

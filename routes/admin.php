@@ -16,5 +16,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::resource('/master/mahasiswa', MahasiswaController::class)->names('data-mahasiswa');
-    Route::post('/master/mahasiswa/sync-all', [MahasiswaController::class, 'syncAll'])->name('data-mahasiswa.sync-all');
+    Route::get('/master/mahasiswa/sync-all/range', [MahasiswaController::class, 'syncAllRange'])->name('data-mahasiswa.sync-all-range');
+    Route::post('/master/mahasiswa/sync-all/{angkatan}', [MahasiswaController::class, 'syncAllYear'])->name('data-mahasiswa.sync-all-year');
 });
