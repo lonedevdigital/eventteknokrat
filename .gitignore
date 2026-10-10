@@ -21,3 +21,5 @@ yarn-error.log
 /.claude
 hs_err_pid*.log
 migrate_error.log
+*.zip
+*.rar

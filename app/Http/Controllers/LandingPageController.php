@@ -8,6 +8,8 @@ use App\Models\EventQrToken;
 use App\Models\EventRegistration;
 use App\Models\Info;
 use App\Models\Sponsor;
+use App\Models\Team;
+use App\Models\ParticipantDocument;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
@@ -208,57 +210,175 @@ class LandingPageController extends Controller
     public function myEvents(Request $request): View
     {
         $today = now()->toDateString();
+        $userId = $request->user()?->id ?? auth()->id();
+
         $categories = EventCategory::query()
             ->orderBy('nama_kategori')
             ->get(['id', 'nama_kategori']);
 
-        $registrationsQuery = EventRegistration::query()
-            ->with(['event.category'])
-            ->where('user_id', $request->user()->id)
+        // Grouping per Induk Event: ambil event yang didaftari oleh user,
+        // lalu eager load registrasi user ini (beserta cabang lomba dan berkasnya).
+        $eventsQuery = Event::query()
+            ->with([
+                'category',
+                'branches',
+                'registrations' => function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                      ->with(['branch', 'documents'])
+                      ->orderBy('id', 'asc');
+                },
+            ])
+            ->where(function ($q) use ($userId) {
+                $q->whereHas('registrations', function ($rq) use ($userId) {
+                    $rq->where('user_id', $userId);
+                })
+                ->orWhereHas('teams.members', function ($mq) use ($userId) {
+                    $mq->where('user_id', $userId);
+                });
+            })
             ->when($request->filled('q'), function ($query) use ($request) {
                 $keyword = trim((string) $request->query('q'));
-
-                $query->whereHas('event', function ($eventQuery) use ($keyword) {
-                    $eventQuery->where('nama_event', 'like', '%' . $keyword . '%');
-                });
+                $query->where('nama_event', 'like', '%' . $keyword . '%');
             })
             ->when($request->filled('event_category_id'), function ($query) use ($request) {
-                $categoryId = (int) $request->query('event_category_id');
-
-                $query->whereHas('event', function ($eventQuery) use ($categoryId) {
-                    $eventQuery->where('event_category_id', $categoryId);
-                });
+                $query->where('event_category_id', (int) $request->query('event_category_id'));
             })
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', (string) $request->query('status'));
+            ->when($request->filled('type'), function ($query) use ($request) {
+                $query->where('type', (string) $request->query('type'));
             })
-            ->when($request->filled('attendance_status'), function ($query) use ($request) {
-                $query->where('attendance_status', (string) $request->query('attendance_status'));
-            })
-            ->when($request->filled('event_status'), function ($query) use ($request, $today) {
+            ->when($request->filled('event_status'), function ($query) use ($today, $request) {
                 $eventStatus = (string) $request->query('event_status');
-
-                $query->whereHas('event', function ($eventQuery) use ($eventStatus, $today) {
-                    if ($eventStatus === 'upcoming') {
-                        $eventQuery->whereDate('tanggal_pelaksanaan', '>', $today);
-                    } elseif ($eventStatus === 'ongoing') {
-                        $eventQuery->whereDate('tanggal_pelaksanaan', '=', $today);
-                    } elseif ($eventStatus === 'past') {
-                        $eventQuery->whereDate('tanggal_pelaksanaan', '<', $today);
-                    }
-                });
+                if ($eventStatus === 'upcoming') {
+                    $query->whereDate('tanggal_pelaksanaan', '>', $today);
+                } elseif ($eventStatus === 'ongoing') {
+                    $query->whereDate('tanggal_pelaksanaan', '=', $today);
+                } elseif ($eventStatus === 'past') {
+                    $query->whereDate('tanggal_pelaksanaan', '<', $today);
+                }
             })
-            ->orderByDesc('registered_at')
+            ->orderByDesc('tanggal_pelaksanaan')
             ->orderByDesc('id');
 
-        $registrations = $registrationsQuery
+        $events = $eventsQuery
             ->paginate(8)
             ->withQueryString();
 
+        // Ambil data tim yang relevan untuk user ini (sebagai ketua atau anggota)
+        $userTeams = Team::query()
+            ->with('members')
+            ->where(function ($q) use ($userId) {
+                $q->where('ketua_user_id', $userId)
+                  ->orWhereHas('members', fn ($mq) => $mq->where('user_id', $userId));
+            })
+            ->get();
+
         return view('frontend.my-events', [
-            'registrations' => $registrations,
+            'events'     => $events,
             'categories' => $categories,
+            'userTeams'  => $userTeams,
         ]);
+    }
+
+    public function myEventDetail(Request $request, string $slug): View
+    {
+        $userId = $request->user()?->id ?? auth()->id();
+
+        $event = Event::query()
+            ->with(['category', 'branches'])
+            ->where('slug', $slug)
+            ->orWhere('id', $slug)
+            ->firstOrFail();
+
+        $branchId = $request->query('branch') ?: $request->query('branch_id');
+
+        $registrationQuery = EventRegistration::query()
+            ->with(['branch', 'documents'])
+            ->where('event_id', $event->id)
+            ->where('user_id', $userId);
+
+        if ($branchId) {
+            $registrationQuery->where('branch_id', $branchId);
+        }
+
+        $registration = $registrationQuery->first();
+
+        if (! $registration) {
+            $registration = EventRegistration::query()
+                ->with(['branch', 'documents'])
+                ->where('event_id', $event->id)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+        }
+
+        // Cari tim jika ada
+        $team = null;
+        if ($registration->tipe_pendaftaran === 'tim' || $registration->branch_id) {
+            $team = Team::with('members')
+                ->where('event_id', $event->id)
+                ->where('branch_id', $registration->branch_id)
+                ->where(function ($q) use ($userId) {
+                    $q->where('ketua_user_id', $userId)
+                      ->orWhereHas('members', fn ($mq) => $mq->where('user_id', $userId));
+                })
+                ->first();
+        }
+
+        // Dokumen yang dibutuhkan
+        $documentRequirements = $event->documentRequirementsForBranch($registration->branch_id)->get();
+
+        $myDocuments = ParticipantDocument::query()
+            ->where('event_registration_id', $registration->id)
+            ->get()
+            ->keyBy('event_document_requirement_id');
+
+        return view('frontend.my-event-detail', [
+            'event'                => $event,
+            'registration'         => $registration,
+            'team'                 => $team,
+            'documentRequirements' => $documentRequirements,
+            'myDocuments'          => $myDocuments,
+        ]);
+    }
+
+    public function cancelRegistration(Request $request, string $slug): RedirectResponse
+    {
+        $userId = $request->user()?->id ?? auth()->id();
+
+        $event = Event::query()
+            ->where('slug', $slug)
+            ->orWhere('id', $slug)
+            ->firstOrFail();
+
+        $branchId = $request->query('branch') ?: $request->input('branch');
+
+        $registrationQuery = EventRegistration::query()
+            ->where('event_id', $event->id)
+            ->where('user_id', $userId);
+
+        if ($branchId) {
+            $registrationQuery->where('branch_id', $branchId);
+        }
+
+        $registration = $registrationQuery->firstOrFail();
+
+        if ($registration->status === 'attended') {
+            return back()->with('error', 'Pendaftaran tidak dapat dibatalkan karena sudah dihadiri.');
+        }
+
+        // Jika ketua tim, hapus tim juga
+        $team = Team::where('event_id', $event->id)
+            ->where('branch_id', $registration->branch_id)
+            ->where('ketua_user_id', $userId)
+            ->first();
+
+        if ($team) {
+            $team->delete();
+        }
+
+        $registration->delete();
+
+        return redirect()->route('frontend.my-events')
+            ->with('success', 'Pendaftaran cabang lomba berhasil dibatalkan.');
     }
 
     public function attendanceScanner(Request $request): View
