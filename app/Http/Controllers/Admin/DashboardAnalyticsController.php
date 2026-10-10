@@ -88,7 +88,14 @@ class DashboardAnalyticsController extends Controller
         });
 
         $totalRegistered = (clone $regQuery)->count();
-        $totalAttended   = (clone $regQuery)->where('status', 'attended')->count();
+        $totalAttended = (clone $regQuery)->where('status', 'attended')->count();
+
+        $uniqueEngagedStudents = (clone $regQuery)->distinct('user_id')->count('user_id');
+        $engagementRate = $totalMahasiswa > 0
+            ? round(($uniqueEngagedStudents / $totalMahasiswa) * 100, 2)
+            : 0;
+
+        $totalSertifikat = (clone $regQuery)->whereNotNull('certificate_url')->count();
 
 
         // ==========================================
@@ -194,6 +201,8 @@ class DashboardAnalyticsController extends Controller
             'totalMahasiswa',
             'totalRegistered',
             'totalAttended',
+            'engagementRate',
+            'totalSertifikat',
 
             // List Tables
             'completedEvents',

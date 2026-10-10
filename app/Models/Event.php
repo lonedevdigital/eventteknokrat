@@ -10,6 +10,11 @@ use Illuminate\Support\Carbon;
 
 class Event extends Model
 {
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     use HasFactory;
 
     // === JENIS EVENT ===
@@ -21,6 +26,7 @@ class Event extends Model
         'slug',
         'thumbnail',
         'flyer',
+        'cover_big',
         'nama_event',
         'created_by_user_id',
         'ketua_pelaksana_user_id',
@@ -28,9 +34,11 @@ class Event extends Model
         'event_category_id',
         'tempat_pelaksanaan',
         'waktu_pelaksanaan',
+        'waktu_pelaksanaan_selesai',
         'tanggal_event',
         'tanggal_pendaftaran',
         'tanggal_pelaksanaan',
+        'tanggal_pelaksanaan_selesai',
         'deskripsi',
         'partisipasi_skala',
         'partisipasi_prodi',
@@ -54,6 +62,7 @@ class Event extends Model
         'status',
         'jumlah_peserta',
         'is_registration_closed',
+        'pelaksanaan_range_label',
     ];
 
     /**
@@ -102,6 +111,119 @@ class Event extends Model
         return $this->belongsTo(User::class, 'ketua_pelaksana_user_id');
     }
 
+    /**
+     * Boleh mengelola lomba ini: admin core, PJ pembuat, atau Ketua Pelaksana yang ditugaskan.
+     * Logic sebenarnya ada di EventPolicy::manage() — lihat Fase 1 di
+     * analisis-bagian-role-ini-gleaming-clock.md.
+     */
+    public function canBeManagedBy(User $user): bool
+    {
+        return app(\App\Policies\EventPolicy::class)->manage($user, $this);
+    }
+
+    /**
+     * Anggota Kepanitiaan dengan jabatan "Bendahara Lomba" — inilah satu-satunya jalur
+     * penetapan Bendahara untuk lomba ini (bukan field terpisah).
+     */
+    public function bendaharaCommittees()
+    {
+        return $this->committees()->where('jabatan', 'Bendahara Lomba');
+    }
+
+    /**
+     * Boleh mengelola pembayaran lomba ini: admin core, atau siapa pun yang tercatat
+     * sebagai "Bendahara Lomba" di Kepanitiaan lomba ini — cukup Ketua Pelaksana yang
+     * menambahkannya di Kepanitiaan, TIDAK perlu admin mengubah role user secara terpisah.
+     * Logic sebenarnya ada di EventPolicy::manageBendahara().
+     */
+    public function canBeManagedByBendahara(User $user): bool
+    {
+        return app(\App\Policies\EventPolicy::class)->manageBendahara($user, $this);
+    }
+
+    /**
+     * Boleh mengelola modul administratif lomba ini (berkas, data peserta): admin core,
+     * atau siapa pun yang tercatat sebagai "Sekretaris Lomba" di Kepanitiaan lomba ini.
+     * Logic sebenarnya ada di EventPolicy::manageSekretaris() — pola yang sama dengan
+     * Bendahara, ditambahkan sebagai bagian Fase 1 (dulu belum ada method scoped ini).
+     */
+    public function canBeManagedBySekretaris(User $user): bool
+    {
+        return app(\App\Policies\EventPolicy::class)->manageSekretaris($user, $this);
+    }
+
+    // Daftar berkas yang wajib diupload peserta lomba (semua cabang, dipakai konteks admin "lihat semua")
+    public function documentRequirements()
+    {
+        return $this->hasMany(EventDocumentRequirement::class, 'event_id')->orderBy('urutan');
+    }
+
+    /**
+     * Berkas wajib untuk satu cabang tertentu (atau untuk lomba tanpa cabang kalau $branchId null) —
+     * dipakai di semua tempat yang butuh "berkas milik SATU cabang", bukan gabungan semua cabang.
+     */
+    public function documentRequirementsForBranch(?int $branchId)
+    {
+        $query = $this->documentRequirements();
+
+        return $branchId ? $query->where('branch_id', $branchId) : $query->whereNull('branch_id');
+    }
+
+    /**
+     * Pastikan berkas default "Bukti Pembayaran" ada untuk satu cabang tertentu ($branchId null =
+     * lomba tanpa cabang) — dipanggil di titik-titik yang bergantung padanya (Kelola Pembayaran,
+     * Kelola Perlombaan) supaya lomba/cabang lama tetap otomatis punya baris default-nya.
+     * Kalau admin sempat menambah "Bukti Pembayaran" manual (is_default masih false) di cabang yang
+     * sama, baris itu DIPROMOSIKAN jadi default — bukan dibuat duplikat.
+     */
+    public function ensureDefaultDocumentRequirement(?int $branchId = null): EventDocumentRequirement
+    {
+        $existing = $this->documentRequirementsForBranch($branchId)->where('is_default', true)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $manual = $this->documentRequirementsForBranch($branchId)
+            ->whereRaw('LOWER(nama_dokumen) = ?', ['bukti pembayaran'])
+            ->first();
+        if ($manual) {
+            $manual->update(['is_default' => true]);
+
+            return $manual->fresh();
+        }
+
+        $maxUrutan = $this->documentRequirementsForBranch($branchId)->max('urutan');
+
+        return EventDocumentRequirement::create([
+            'event_id'     => $this->id,
+            'branch_id'    => $branchId,
+            'nama_dokumen' => 'Bukti Pembayaran',
+            'jenis_file'   => 'gambar',
+            'is_default'   => true,
+            'urutan'       => ($maxUrutan ?? -1) + 1,
+        ]);
+    }
+
+    /**
+     * Pastikan berkas default ada di SETIAP cabang lomba (atau sekali untuk lomba tanpa cabang) —
+     * pengganti pemanggilan ensureDefaultDocumentRequirement() polos di titik-titik yang butuh
+     * jaminan untuk semua cabang sekaligus, bukan cuma satu.
+     */
+    public function ensureDefaultDocumentRequirementsForAllBranches(): void
+    {
+        $branches = $this->branches()->get();
+
+        if ($branches->isEmpty()) {
+            $this->ensureDefaultDocumentRequirement(null);
+
+            return;
+        }
+
+        foreach ($branches as $branch) {
+            $this->ensureDefaultDocumentRequirement($branch->id);
+        }
+    }
+
     // Cabang lomba (untuk lomba berbayar)
     public function branches()
     {
@@ -118,6 +240,11 @@ class Event extends Model
     public function teams()
     {
         return $this->hasMany(Team::class, 'event_id');
+    }
+
+    public function assessmentCriteria()
+    {
+        return $this->hasMany(AssessmentCriterion::class, 'event_id')->orderBy('id');
     }
 
     /**
@@ -175,6 +302,46 @@ class Event extends Model
     }
 
     /**
+     * Label tanggal pelaksanaan, dirender sebagai rentang jika tanggal_pelaksanaan_selesai
+     * berbeda dari tanggal_pelaksanaan (dipakai terutama untuk Lomba yang bisa berlangsung
+     * beberapa hari).
+     */
+    public function getPelaksanaanRangeLabelAttribute(): string
+    {
+        if (!$this->tanggal_pelaksanaan) {
+            return '—';
+        }
+
+        $start = Carbon::parse((string) $this->tanggal_pelaksanaan);
+        $end = Carbon::parse((string) ($this->tanggal_pelaksanaan_selesai ?: $this->tanggal_pelaksanaan));
+
+        return $start->isSameDay($end)
+            ? $start->translatedFormat('d M Y')
+            : $start->translatedFormat('d M Y') . ' – ' . $end->translatedFormat('d M Y');
+    }
+
+    /**
+     * Deskripsi singkat untuk meta tag SEO (meta description, og:description, dll).
+     * Fallback ke ringkasan otomatis jika field "deskripsi" masih kosong.
+     */
+    public function metaDescription(int $limit = 155): string
+    {
+        $text = trim((string) Str::squish((string) $this->deskripsi));
+
+        if ($text === '') {
+            $parts = array_filter([
+                $this->nama_event,
+                $this->category->nama_kategori ?? null,
+                $this->tempat_pelaksanaan,
+            ]);
+
+            $text = implode(' — ', $parts);
+        }
+
+        return Str::limit($text, $limit);
+    }
+
+    /**
      * -------------------------
      *   STATUS OTOMATIS
      * -------------------------
@@ -212,14 +379,20 @@ class Event extends Model
 
     public function registrationDeadlineAt(): ?Carbon
     {
+        $timezone = config('app.timezone');
+
+        // tanggal_pendaftaran adalah batas pendaftaran yang sebenarnya diisi admin.
+        if ($this->tanggal_pendaftaran) {
+            return Carbon::parse((string) $this->tanggal_pendaftaran, $timezone)->endOfDay();
+        }
+
         if (!$this->tanggal_pelaksanaan) {
             return null;
         }
 
-        $timezone = config('app.timezone');
         $eventDate = Carbon::parse((string) $this->tanggal_pelaksanaan, $timezone);
 
-        // If event time is empty, registration is closed at end of event day.
+        // Fallback lama: kalau tanggal_pendaftaran belum diisi, pakai tanggal pelaksanaan.
         if (!$this->waktu_pelaksanaan) {
             return $eventDate->copy()->endOfDay();
         }
@@ -299,7 +472,18 @@ class Event extends Model
         static::updating(function ($event) {
             // Update slug saat nama_event berubah
             if ($event->isDirty('nama_event')) {
-                $event->slug = static::generateUniqueSlug($event->nama_event, $event->id);
+                $newSlug = static::generateUniqueSlug($event->nama_event, $event->id);
+                $oldSlug = $event->getOriginal('slug');
+
+                // Catat slug lama supaya URL yang sudah terindeks Google tetap bisa di-redirect.
+                if ($oldSlug && $oldSlug !== $newSlug) {
+                    EventSlugRedirect::create([
+                        'event_id' => $event->id,
+                        'old_slug' => $oldSlug,
+                    ]);
+                }
+
+                $event->slug = $newSlug;
             }
         });
     }

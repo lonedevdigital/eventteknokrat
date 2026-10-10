@@ -19,16 +19,16 @@ class EventExport implements FromArray
         $data = [];
 
         $regs = EventRegistration::where('event_id', $this->eventId)
-            ->with('mahasiswa')
+            ->with(['mahasiswa', 'user'])
             ->get();
 
         $data[] = ['Nama', 'NIM', 'Prodi', 'Status'];
 
         foreach ($regs as $r) {
             $data[] = [
-                $r->mahasiswa->nama_mahasiswa,
-                $r->mahasiswa->nim,
-                $r->mahasiswa->prodi,
+                $r->mahasiswa->nama_mahasiswa ?? $r->user->name ?? '-',
+                $r->mahasiswa->nim ?? '-',
+                $r->mahasiswa->prodi ?? '-',
                 strtoupper($r->status)
             ];
         }

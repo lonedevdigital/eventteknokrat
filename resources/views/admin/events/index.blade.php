@@ -225,7 +225,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('events.edit', $event->id) }}" class="font-weight-bold text-dark d-block text-wrap" style="font-size: 1rem; line-height: 1.2;">{{ $event->nama_event }}</a>
+                                    <a href="{{ route('events.edit', $event->slug) }}" class="font-weight-bold text-dark d-block text-wrap" style="font-size: 1rem; line-height: 1.2;">{{ $event->nama_event }}</a>
                                     <small class="text-muted mt-1 d-block"><i class="fas fa-map-marker-alt mr-1" style="color: #e74c3c;"></i> {{ $event->tempat_pelaksanaan }}</small>
                                 </td>
                                 <td><span class="badge badge-flat-green px-2 py-1" style="font-size: 0.75rem;">{{ $event->category->nama_kategori ?? 'Umum' }}</span></td>
@@ -248,28 +248,28 @@
                                         </a>
 
                                         {{-- 2. Sertifikat --}}
-                                        <a href="{{ route('certificates.event-detail', $event->id) }}"
+                                        <a href="{{ route('certificates.event-detail', $event->slug) }}"
                                            class="btn btn-sm btn-action-flat btn-blue-flat"
                                            title="Kelola Sertifikat">
                                             SERTIFIKAT
                                         </a>
 
                                         {{-- 3. Dokumentasi --}}
-                                        <a href="{{ route('documentations.create', $event->id) }}"
+                                        <a href="{{ route('documentations.create', $event->slug) }}"
                                            class="btn btn-sm btn-action-flat btn-green-flat"
                                            title="Kelola Dokumentasi">
                                             DOKUMENTASI
                                         </a>
 
                                         {{-- 4. Edit --}}
-                                        <a href="{{ route('events.edit', $event->id) }}"
+                                        <a href="{{ route('events.edit', $event->slug) }}"
                                            class="btn btn-sm btn-action-flat btn-warning-flat"
                                            title="Edit Data">
                                             EDIT
                                         </a>
 
                                         {{-- 5. Hapus --}}
-                                        <form action="{{ route('events.destroy', $event->id) }}" method="POST" class="d-inline-block"
+                                        <form action="{{ route('events.destroy', $event->slug) }}" method="POST" class="d-inline-block"
                                               onsubmit="return confirm('Hapus event &quot;{{ $event->nama_event }}&quot;?')">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-action-flat btn-danger-flat" title="Hapus">

@@ -35,4 +35,14 @@ class Team extends Model
     {
         return $this->hasMany(TeamMember::class, 'team_id');
     }
+
+    public function isFull(): bool
+    {
+        $branch = $this->branch;
+        if (! $branch || ! $branch->maks_anggota_tim) {
+            return false;
+        }
+
+        return $this->members()->count() >= $branch->maks_anggota_tim;
+    }
 }

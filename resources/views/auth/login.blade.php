@@ -120,7 +120,7 @@
         .title {
             text-align: center;
             font-weight: 600;
-            font-size: 22px;
+            font-size: 20px;
             letter-spacing: -.015em;
             margin-bottom: 18px;
             color: var(--text);
@@ -137,7 +137,7 @@
         }
 
         .label {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text)
         }
@@ -152,7 +152,7 @@
             border: 2px solid var(--border);
             border-radius: 12px;
             padding: 0 44px 0 42px;
-            font-size: 15px;
+            font-size: 13px;
             color: var(--text);
             background: var(--surface);
             outline: 0;
@@ -177,7 +177,7 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--muted-2);
-            font-size: 16px;
+            font-size: 14px;
             transition: color .2s, transform .2s;
         }
 
@@ -210,7 +210,7 @@
             gap: 8px;
             align-items: flex-start;
             margin-top: 8px;
-            font-size: 13px;
+            font-size: 11px;
             color: var(--error);
             background: rgba(220, 38, 38, .06);
             padding: 8px 10px;
@@ -284,7 +284,7 @@
         }
 
         .check span {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--muted);
             font-weight: 500
         }
@@ -392,7 +392,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 13px;
+            font-size: 11px;
             color: var(--muted);
             font-weight: 500;
             cursor: pointer;
@@ -408,10 +408,140 @@
             -moz-appearance: auto;
             cursor: pointer;
         }
+
+        /* door selection cards */
+        .door-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .door-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            text-align: left;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            transition: border-color .2s, box-shadow .2s, transform .15s;
+            font-family: inherit;
+        }
+
+        .door-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(31, 41, 55, .10);
+            transform: translateY(-1px);
+        }
+
+        .door-icon {
+            flex: 0 0 auto;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            color: var(--primary);
+            display: grid;
+            place-items: center;
+            font-size: 17px;
+        }
+
+        .door-text {
+            display: grid;
+            gap: 2px;
+        }
+
+        .door-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .door-desc {
+            font-size: 12.5px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: 0;
+            padding: 0;
+            margin-bottom: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .form-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+
+        .form-subtitle {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
     </style>
 </head>
 
 <body>
+    @php
+        $doors = $doors ?? [
+            'mahasiswa' => [
+                'cardTitle' => 'Mahasiswa Teknokrat',
+                'cardDesc' => 'Masuk menggunakan NPM & password mahasiswa',
+                'icon' => 'fa-user-graduate',
+                'loginTitle' => $loginTitle ?? 'Login Mahasiswa',
+                'loginSubtitle' => $loginSubtitle ?? 'Gunakan NPM sebagai username dan password.',
+                'formAction' => $formAction ?? route('login.store'),
+                'usernameLabel' => $usernameLabel ?? 'NPM',
+                'usernamePlaceholder' => $usernamePlaceholder ?? 'Masukkan NPM',
+                'submitLabel' => $submitLabel ?? 'Sign In Mahasiswa',
+            ],
+            'external' => [
+                'cardTitle' => 'Mahasiswa Luar Teknokrat',
+                'cardDesc' => 'Pendaftaran & login peserta luar kampus',
+                'icon' => 'fa-user-plus',
+                'loginTitle' => 'Login Mahasiswa Luar',
+                'loginSubtitle' => 'Masuk dengan email & password terdaftar',
+                'formAction' => route('login.store'),
+                'usernameLabel' => 'Email',
+                'usernamePlaceholder' => 'Masukkan Email',
+                'submitLabel' => 'Sign In Peserta Luar',
+                'registerUrl' => route('register.external'),
+                'registerText' => 'Daftar Akun Baru (Mahasiswa Luar)',
+            ],
+            'admin' => [
+                'cardTitle' => 'Panitia / Staff / Admin',
+                'cardDesc' => 'Khusus pengurus event, BAAK, Kemahasiswaan & Superuser',
+                'icon' => 'fa-user-shield',
+                'loginTitle' => 'Login Admin & Panitia',
+                'loginSubtitle' => 'Khusus akun admin (BAAK, Kemahasiswaan, Superuser, PJ)',
+                'formAction' => route('admin.login.store'),
+                'usernameLabel' => 'Username / Email Admin',
+                'usernamePlaceholder' => 'Masukkan username atau email',
+                'submitLabel' => 'Sign In Admin',
+            ],
+        ];
+
+        $activeMode = old('_mode', $loginMode ?? null);
+    @endphp
+
     <div class="bg-noise" aria-hidden="true"></div>
 
     <main class="card" role="main">
@@ -419,12 +549,7 @@
             <img src="{{ asset('logo_login.jpg') }}" alt="Logo" class="logo-img" />
         </div>
 
-        <h1 class="title">{{ $loginTitle ?? 'Sistem Manajemen Event' }}</h1>
-        @if(!empty($loginSubtitle))
-            <p style="margin-top:-8px; margin-bottom:16px; text-align:center; font-size:13px; color:var(--muted); font-weight:500;">
-                {{ $loginSubtitle }}
-            </p>
-        @endif
+        <h1 class="title">Sistem Manajemen Event</h1>
 
         @if (session('status'))
             <div class="flash" role="status" aria-live="polite">
@@ -432,88 +557,143 @@
             </div>
         @endif
 
-        <form id="loginForm" class="form" method="POST" action="{{ $formAction ?? route('login.store') }}">
-            @csrf
-            <div class="group">
-                <label for="email" class="label">{{ $usernameLabel ?? 'Username' }}</label>
-                <div class="input-wrap">
-                    <input id="email" name="email" type="text" class="input @error('email') error @enderror"
-                        value="{{ old('email') }}" required autofocus autocomplete="username"
-                        placeholder="{{ $usernamePlaceholder ?? '' }}" />
-                    <i class="fa-solid fa-user icon" aria-hidden="true"></i>
-                </div>
-                @error('email')
-                    <div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ $message }}</span>
+        <div id="doorSelection" class="door-grid">
+            @foreach ($doors as $key => $door)
+                <button type="button" class="door-card" data-mode="{{ $key }}">
+                    <span class="door-icon"><i class="fa-solid {{ $door['icon'] }}" aria-hidden="true"></i></span>
+                    <span class="door-text">
+                        <span class="door-title">{{ $door['cardTitle'] }}</span>
+                        <span class="door-desc">{{ $door['cardDesc'] }}</span>
+                    </span>
+                </button>
+            @endforeach
+        </div>
+
+        @foreach ($doors as $key => $door)
+            <div class="door-form" id="form-{{ $key }}" style="display:none;">
+                <button type="button" class="back-link" data-back>
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Kembali ke pilihan login
+                </button>
+
+                <h2 class="form-title">{{ $door['loginTitle'] }}</h2>
+                @if(!empty($door['loginSubtitle']))
+                    <p class="form-subtitle">{{ $door['loginSubtitle'] }}</p>
+                @endif
+
+                <form class="form" method="POST" action="{{ $door['formAction'] }}">
+                    @csrf
+                    <input type="hidden" name="_mode" value="{{ $key }}">
+                    <div class="group">
+                        <label for="email-{{ $key }}" class="label">{{ $door['usernameLabel'] }}</label>
+                        <div class="input-wrap">
+                            <input id="email-{{ $key }}" name="email" type="text"
+                                class="input @error('email') error @enderror"
+                                value="{{ old('_mode') === $key ? old('email') : '' }}" required
+                                autocomplete="username" placeholder="{{ $door['usernamePlaceholder'] }}" />
+                            <i class="fa-solid fa-user icon" aria-hidden="true"></i>
+                        </div>
+                        @if(old('_mode') === $key)
+                            @error('email')
+                                <div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ $message }}</span>
+                                </div>
+                            @enderror
+                        @endif
                     </div>
-                @enderror
-            </div>
-            <div class="group">
-                <label for="password" class="label">Password</label>
-                <div class="input-wrap">
-                    <input id="password" name="password" type="password"
-                        class="input @error('password') error @enderror" required autocomplete="current-password"
-                        placeholder="" />
-                    <i class="fa-solid fa-lock icon" aria-hidden="true"></i>
-                    <button class="toggle" type="button" aria-label="Tampilkan / sembunyikan password"
-                        id="togglePassword">
-                        <i class="fa-solid fa-eye" id="passwordIcon" aria-hidden="true"></i>
+                    <div class="group">
+                        <label for="password-{{ $key }}" class="label">Password</label>
+                        <div class="input-wrap">
+                            <input id="password-{{ $key }}" name="password" type="password"
+                                class="input @error('password') error @enderror" required
+                                autocomplete="current-password" placeholder="" />
+                            <i class="fa-solid fa-lock icon" aria-hidden="true"></i>
+                            <button class="toggle" type="button" aria-label="Tampilkan / sembunyikan password">
+                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        @if(old('_mode') === $key)
+                            @error('password')
+                                <div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ $message }}</span>
+                                </div>
+                            @enderror
+                        @endif
+                    </div>
+                    <div class="row">
+                        <label for="remember-{{ $key }}" class="checkbox-inline">
+                            <input type="checkbox" id="remember-{{ $key }}" name="remember"
+                                {{ old('_mode') === $key && old('remember') ? 'checked' : '' }} />
+                            <span>Remember me</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit shine">
+                        <span class="btn-text">{{ $door['submitLabel'] }}</span>
+                        <span class="spinner" aria-hidden="true"></span>
                     </button>
-                </div>
-                @error('password')
-                    <div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ $message }}</span>
-                    </div>
-                @enderror
-            </div>
-            <div class="row">
-                <label for="remember" class="checkbox-inline">
-                    <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }} />
-                    <span>Remember me</span>
-                </label>
-            </div>
 
-            <button type="submit" class="submit shine" id="loginButton">
-                <span id="btnText">{{ $submitLabel ?? 'Sign In' }}</span>
-                <span class="spinner" id="btnSpinner" aria-hidden="true"></span>
-            </button>
-
-            @if(!empty($switchUrl) && !empty($switchText))
-                <a href="{{ $switchUrl }}"
-                   style="display:block; margin-top:10px; text-align:center; font-size:13px; color:var(--muted); font-weight:600; text-decoration:none;">
-                    {{ $switchText }}
-                </a>
-            @endif
-        </form>
+                    @if(!empty($door['registerUrl']))
+                        <a href="{{ $door['registerUrl'] }}" class="submit shine"
+                           style="display:flex; align-items:center; justify-content:center; margin-top:10px; text-decoration:none; background:var(--surface); color:var(--primary); border:2px solid var(--primary);">
+                            {{ $door['registerText'] }}
+                        </a>
+                    @endif
+                </form>
+            </div>
+        @endforeach
     </main>
 
     <script>
-        (function() {
-            const btn = document.getElementById('togglePassword');
-            const input = document.getElementById('password');
-            const icon = document.getElementById('passwordIcon');
-            btn.addEventListener('click', () => {
-                const isPwd = input.type === 'password';
-                input.type = isPwd ? 'text' : 'password';
+        const doorSelection = document.getElementById('doorSelection');
+        const doorForms = document.querySelectorAll('.door-form');
+
+        function showDoor(mode) {
+            doorSelection.style.display = 'none';
+            doorForms.forEach(f => {
+                f.style.display = f.id === 'form-' + mode ? 'block' : 'none';
+            });
+        }
+
+        function showSelection() {
+            doorSelection.style.display = 'grid';
+            doorForms.forEach(f => f.style.display = 'none');
+        }
+
+        document.querySelectorAll('.door-card').forEach(card => {
+            card.addEventListener('click', () => showDoor(card.dataset.mode));
+        });
+
+        document.querySelectorAll('[data-back]').forEach(btn => {
+            btn.addEventListener('click', showSelection);
+        });
+
+        @if(!empty($activeMode))
+            showDoor(@json($activeMode));
+        @endif
+
+        // wire up password toggle, submit spinner, and focus micro-interaction per form
+        doorForms.forEach(block => {
+            const toggleBtn = block.querySelector('.toggle');
+            const pwdInput = block.querySelector('input[type="password"]');
+            toggleBtn?.addEventListener('click', () => {
+                const icon = toggleBtn.querySelector('i');
+                const isPwd = pwdInput.type === 'password';
+                pwdInput.type = isPwd ? 'text' : 'password';
                 icon.className = isPwd ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
             });
-        })();
 
-        // submit loading state
-        (function() {
-            const form = document.getElementById('loginForm');
-            const btn = document.getElementById('loginButton');
-            const txt = document.getElementById('btnText');
-            const spn = document.getElementById('btnSpinner');
+            const form = block.querySelector('form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
             form.addEventListener('submit', () => {
-                btn.disabled = true;
-                txt.style.display = 'none';
-                spn.style.display = 'inline-block';
+                submitBtn.disabled = true;
+                btnText.style.display = 'none';
+                spinner.style.display = 'inline-block';
             });
-        })();
 
-        // focus micro-interaction
-        document.querySelectorAll('.input').forEach(el => {
-            el.addEventListener('focus', () => el.parentElement.style.transform = 'scale(1.01)');
-            el.addEventListener('blur', () => el.parentElement.style.transform = 'scale(1)');
+            block.querySelectorAll('.input').forEach(el => {
+                el.addEventListener('focus', () => el.parentElement.style.transform = 'scale(1.01)');
+                el.addEventListener('blur', () => el.parentElement.style.transform = 'scale(1)');
+            });
         });
     </script>
 </body>

@@ -29,7 +29,7 @@
 
 @php
     $skala = old('partisipasi_skala', $event->partisipasi_skala);
-    $tipe  = old('tipe_bayar', $event->tipe_bayar ?: 'gratis');
+    $tipe  = old('tipe_bayar', ($event->tipe_bayar ?: ($event->branches->count() > 0 ? 'berbayar' : 'gratis')));
     $kontakRows = $event->kontak ?? [];
 @endphp
 
@@ -48,7 +48,7 @@
                     </a>
                 </div>
 
-                <form action="{{ route('events.update', $event->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('events.update', $event->slug) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
@@ -200,47 +200,76 @@
                             </div>
                         </div>
 
-                        {{-- TIPE LOMBA --}}
+                        {{-- TIPE LOMBA & CABANG --}}
                         <div class="field-section">
-                            <div class="field-section-title"><i class="fas fa-money-bill-wave mr-1"></i> Tipe Lomba</div>
-                            <div class="form-group mb-2">
-                                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                    <label class="btn btn-outline-success {{ $tipe=='gratis'?'active':'' }}">
-                                        <input type="radio" name="tipe_bayar" value="gratis" {{ $tipe=='gratis'?'checked':'' }} onchange="toggleBayar()"> Gratis
-                                    </label>
-                                    <label class="btn btn-outline-success {{ $tipe=='berbayar'?'active':'' }}">
-                                        <input type="radio" name="tipe_bayar" value="berbayar" {{ $tipe=='berbayar'?'checked':'' }} onchange="toggleBayar()"> Berbayar
-                                    </label>
+                            <div class="field-section-title"><i class="fas fa-money-bill-wave mr-1"></i> Tipe Lomba &amp; Cabang Lomba</div>
+                            <div class="form-group mb-3">
+                                <label class="font-weight-bold">Tipe Biaya Pendaftaran Event</label>
+                                <div>
+                                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                        <label class="btn btn-outline-success {{ $tipe=='gratis'?'active':'' }}">
+                                            <input type="radio" name="tipe_bayar" value="gratis" {{ $tipe=='gratis'?'checked':'' }} onchange="toggleBayar()"> Gratis
+                                        </label>
+                                        <label class="btn btn-outline-success {{ $tipe=='berbayar'?'active':'' }}">
+                                            <input type="radio" name="tipe_bayar" value="berbayar" {{ $tipe=='berbayar'?'checked':'' }} onchange="toggleBayar()"> Berbayar
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
+
+                            @if($event->branches->count() > 0)
+                            <div class="p-3 mb-3 border bg-white shadow-sm">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="font-weight-bold text-dark mb-0">
+                                        <i class="fas fa-sitemap text-success mr-1"></i> Cabang Lomba Terdaftar ({{ $event->branches->count() }})
+                                    </h6>
+                                    <a href="{{ route('lomba.manage', $event->slug) }}" class="btn btn-sm btn-outline-success font-weight-bold">
+                                        <i class="fas fa-external-link-alt mr-1"></i> Kelola Cabang Lomba Lengkap
+                                    </a>
+                                </div>
+                                <p class="text-muted small mb-2">
+                                    Cabang lomba di bawah ini sudah aktif dan terhubung dengan data pendaftar &amp; berkas juknis.
+                                </p>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Nama Cabang</th>
+                                                <th>Biaya Individu</th>
+                                                <th>Biaya Tim</th>
+                                                <th>Maks Anggota</th>
+                                                <th class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($event->branches as $b)
+                                            <tr>
+                                                <td class="font-weight-bold">{{ $b->nama_cabang }}</td>
+                                                <td>Rp {{ number_format($b->harga_individual ?? 0, 0, ',', '.') }}</td>
+                                                <td>Rp {{ number_format($b->harga_tim ?? 0, 0, ',', '.') }}</td>
+                                                <td>{{ $b->maks_anggota_tim ?? 1 }} orang</td>
+                                                <td class="text-center">
+                                                    <a href="{{ route('lomba.cabang.edit', [$event->slug, $b->id]) }}" class="btn btn-xs btn-outline-primary" title="Edit Cabang">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            @endif
 
                             <div id="cabang_section" style="display:none;">
                                 <hr>
                                 <label class="font-weight-bold mb-2">
-                                    <i class="fas fa-sitemap mr-1"></i> Informasi Cabang Lomba
-                                    <small class="text-muted font-weight-normal">(nama cabang &amp; harga pendaftaran)</small>
+                                    <i class="fas fa-plus-circle text-success mr-1"></i> Tambah Cabang Lomba Baru
+                                    <small class="text-muted font-weight-normal">(opsional, cabang baru akan ditambahkan tanpa menghapus cabang yang sudah ada)</small>
                                 </label>
-                                <div id="cabang_rows">
-                                    @foreach($event->branches as $b)
-                                    <div class="repeat-row">
-                                        <div class="form-row align-items-end">
-                                            <div class="col-md-6 mb-2">
-                                                <label class="small mb-1">Nama Cabang</label>
-                                                <input type="text" name="cabang_nama[]" class="form-control form-control-sm" value="{{ $b->nama_cabang }}">
-                                            </div>
-                                            <div class="col-md-4 mb-2">
-                                                <label class="small mb-1">Harga Pendaftaran (Rp)</label>
-                                                <input type="number" name="cabang_harga[]" class="form-control form-control-sm" min="0" value="{{ $b->harga_pendaftaran }}">
-                                            </div>
-                                            <div class="col-md-2 mb-2 text-right">
-                                                <button type="button" class="btn btn-remove-row btn-sm btn-block" onclick="this.closest('.repeat-row').remove()"><i class="fas fa-trash"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                </div>
+                                <div id="cabang_rows"></div>
                                 <button type="button" class="btn btn-add-row btn-sm" onclick="addCabang()">
-                                    <i class="fas fa-plus mr-1"></i> Tambah Cabang Lomba
+                                    <i class="fas fa-plus mr-1"></i> Tambah Baris Cabang Baru
                                 </button>
                             </div>
                         </div>
@@ -297,8 +326,8 @@
     function toggleBayar() {
         var berbayar = document.querySelector('input[name="tipe_bayar"]:checked');
         var show = berbayar && berbayar.value === 'berbayar';
-        document.getElementById('cabang_section').style.display = show ? 'block' : 'none';
-        if (show && document.querySelectorAll('#cabang_rows .repeat-row').length === 0) addCabang();
+        var cabangSec = document.getElementById('cabang_section');
+        if (cabangSec) cabangSec.style.display = show ? 'block' : 'none';
     }
     function addCabang(nama, harga) {
         var wrap = document.getElementById('cabang_rows');

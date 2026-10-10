@@ -421,6 +421,8 @@ class AdminEventController extends Controller
     {
         $this->normalizeTime($request);
 
+        $hasExistingBranches = $event->branches()->exists();
+
         $validated = $request->validate([
             'nama_event'          => 'required|string|max:255',
             'partisipasi_skala'   => 'required|in:prodi,universitas',
@@ -446,7 +448,7 @@ class AdminEventController extends Controller
             'kontak_no'           => 'nullable|array',
             'kontak_no.*'         => 'nullable|string|max:100',
 
-            'cabang_nama'         => 'required_if:tipe_bayar,berbayar|nullable|array',
+            'cabang_nama'         => ($hasExistingBranches ? 'nullable|array' : 'required_if:tipe_bayar,berbayar|nullable|array'),
             'cabang_nama.*'       => 'nullable|string|max:150',
             'cabang_harga'        => 'nullable|array',
             'cabang_harga.*'      => 'nullable|integer|min:0',
@@ -505,18 +507,27 @@ class AdminEventController extends Controller
         DB::transaction(function () use ($event, $data, $validated, $request) {
             $event->update($data);
 
-            // Sinkronkan cabang lomba: hapus lama, buat ulang dari input
-            $event->branches()->delete();
-            if ($validated['tipe_bayar'] === 'berbayar') {
+            // JANGAN hapus cabang lomba yang sudah ada karena cabang lomba memiliki data relasi
+            // (pendaftaran, tim, dokumen persyaratan, kriteria penilaian, juknis, dsb).
+            // Cabang lomba dikelola secara lengkap melalui menu Kelola Cabang Lomba.
+            // Hanya tambahkan cabang baru jika ada input cabang_nama yang belum pernah terdaftar.
+            if ($request->has('cabang_nama')) {
+                $existingNames = $event->branches()->pluck('nama_cabang')->map(fn($n) => strtolower(trim($n)))->toArray();
                 foreach (($request->input('cabang_nama', [])) as $i => $namaCabang) {
                     if (blank($namaCabang)) {
                         continue;
                     }
-                    EventCompetitionBranch::create([
-                        'event_id'          => $event->id,
-                        'nama_cabang'       => $namaCabang,
-                        'harga_pendaftaran' => (int) $request->input("cabang_harga.$i", 0),
-                    ]);
+                    if (!in_array(strtolower(trim($namaCabang)), $existingNames)) {
+                        $harga = (int) $request->input("cabang_harga.$i", 0);
+                        EventCompetitionBranch::create([
+                            'event_id'          => $event->id,
+                            'nama_cabang'       => $namaCabang,
+                            'harga_pendaftaran' => $harga,
+                            'harga_individual'  => $harga,
+                            'harga_tim'         => $harga,
+                            'tipe_bayar'        => $harga > 0 ? 'berbayar' : 'gratis',
+                        ]);
+                    }
                 }
             }
         });

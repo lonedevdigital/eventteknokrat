@@ -2,6 +2,7 @@
     $currentUser = auth()->user();
     $isPenanggungJawab = $currentUser?->isPenanggungJawab() ?? false;
     $isKetuaPelaksana  = $currentUser?->isKetuaPelaksana() ?? false;
+    $isBendahara       = ($currentUser?->isBendahara() || $currentUser?->isBendaharaLomba()) ?? false;
     $isAdminCore = $currentUser && ($currentUser->isSuperUser() || $currentUser->isBaak() || $currentUser->isKemahasiswaan());
 
     $eventMenuOpen = request()->routeIs('events.*')
@@ -17,6 +18,15 @@
        class="nav-link {{ request()->routeIs('lomba.*') ? 'active' : '' }}">
         <i class="fa fa-trophy nav-icon {{ request()->routeIs('lomba.*') ? 'text-white' : 'text-dark' }}"></i>
         <p>Lomba Saya</p>
+    </a>
+</li>
+@elseif($isBendahara)
+{{-- ============ BENDAHARA: menu fokus (hanya Kelola Pembayaran) ============ --}}
+<li class="nav-item">
+    <a href="{{ route('payment.index') }}"
+       class="nav-link {{ request()->routeIs('payment.*') ? 'active' : '' }}">
+        <i class="fa fa-money-bill-wave nav-icon {{ request()->routeIs('payment.*') ? 'text-white' : 'text-dark' }}"></i>
+        <p>Kelola Pembayaran Lomba</p>
     </a>
 </li>
 @else
@@ -41,35 +51,12 @@
 
 {{-- Manajemen User (Admin & BAAK/Kemahasiswaan) --}}
 @if($isAdminCore)
-@php
-    $userMgmtOpen = request()->routeIs('user-management.*') || request()->routeIs('role-management.*');
-@endphp
-<li class="nav-item has-treeview {{ $userMgmtOpen ? 'menu-open' : '' }}">
-    <a href="#" class="nav-link {{ $userMgmtOpen ? 'active' : '' }}">
-        <i class="fa fa-user-cog nav-icon {{ $userMgmtOpen ? 'text-white' : 'text-dark' }}"></i>
-        <p>
-            Manajemen User
-            <i class="right fas fa-angle-left"></i>
-        </p>
+<li class="nav-item">
+    <a href="{{ route('user-management.index') }}"
+       class="nav-link {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
+        <i class="fa fa-user-cog nav-icon {{ request()->routeIs('user-management.*') ? 'text-white' : 'text-dark' }}"></i>
+        <p>Daftar Pengguna</p>
     </a>
-    <ul class="nav nav-treeview">
-        <li class="nav-item">
-            <a href="{{ route('user-management.index') }}"
-               class="nav-link {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Daftar User</p>
-            </a>
-        </li>
-        @if($currentUser->isSuperUser())
-        <li class="nav-item">
-            <a href="{{ route('role-management.index') }}"
-               class="nav-link {{ request()->routeIs('role-management.*') ? 'active' : '' }}">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Manajemen Role</p>
-            </a>
-        </li>
-        @endif
-    </ul>
 </li>
 @endif
 
@@ -142,6 +129,30 @@
         <i class="fa fa-handshake nav-icon {{ request()->routeIs('sponsors.*') ? 'text-white' : 'text-dark' }}"></i>
         <p>Sponsor</p>
     </a>
+</li>
+
+@php
+    $settingsOpen = request()->routeIs('role-management.*') || request()->is('settings*');
+@endphp
+<li class="nav-item has-treeview {{ $settingsOpen ? 'menu-open' : '' }}">
+    <a href="#" class="nav-link {{ $settingsOpen ? 'active' : '' }}">
+        <i class="fa fa-cog nav-icon {{ $settingsOpen ? 'text-white' : 'text-dark' }}"></i>
+        <p>
+            Settings
+            <i class="right fas fa-angle-left"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        @if($currentUser->isSuperUser())
+        <li class="nav-item">
+            <a href="{{ route('role-management.index') }}"
+               class="nav-link {{ request()->routeIs('role-management.*') ? 'active' : '' }}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Manajemen Role</p>
+            </a>
+        </li>
+        @endif
+    </ul>
 </li>
 @endif
 

@@ -13,6 +13,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicQrController;
+use App\Http\Controllers\SeoController;
 
 // Admin Namespace
 use App\Http\Controllers\Admin\AdminEventController;
@@ -52,20 +53,32 @@ Route::get('/debug-user', function () {
 
 Route::get('/', [LandingPageController::class, 'index'])->name('frontend.home');
 Route::get('/event-list', [LandingPageController::class, 'events'])->name('frontend.events');
-Route::get('/event-list/{slug}', [LandingPageController::class, 'eventDetail'])->name('frontend.events.show');
+Route::get('/event/{slug}', [LandingPageController::class, 'eventDetail'])->name('frontend.events.show');
+
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/my-event', [LandingPageController::class, 'myEvents'])->name('frontend.my-events');
     Route::get('/my-event/attendance', [LandingPageController::class, 'attendanceScanner'])->name('frontend.attendance.scan');
     Route::post('/my-event/attendance', [LandingPageController::class, 'submitAttendance'])->name('frontend.attendance.submit');
     Route::get('/sertifikat', [LandingPageController::class, 'certificates'])->name('frontend.certificates');
-    Route::post('/event-list/{slug}/register', [LandingPageController::class, 'registerEvent'])->name('frontend.events.register');
+    Route::post('/event/{slug}/register', [LandingPageController::class, 'registerEvent'])->name('frontend.events.register');
 
     // === MY TEAMS (Mahasiswa — untuk Lomba) ===
     Route::get('/my-teams', [\App\Http\Controllers\TeamController::class, 'index'])->name('frontend.teams.index');
     Route::get('/my-teams/create', [\App\Http\Controllers\TeamController::class, 'create'])->name('frontend.teams.create');
     Route::post('/my-teams', [\App\Http\Controllers\TeamController::class, 'store'])->name('frontend.teams.store');
     Route::delete('/my-teams/{team}', [\App\Http\Controllers\TeamController::class, 'destroy'])->name('frontend.teams.destroy');
+    Route::get('/my-teams/{team}/kelola', [\App\Http\Controllers\TeamController::class, 'manage'])->name('frontend.teams.manage');
+    Route::post('/my-teams/{team}/invite', [\App\Http\Controllers\TeamController::class, 'invite'])->name('frontend.teams.invite');
+    Route::delete('/my-teams/{team}/anggota/{member}', [\App\Http\Controllers\TeamController::class, 'removeMember'])->name('frontend.teams.member.remove');
+    Route::post('/team-invite/{member}/accept', [\App\Http\Controllers\TeamController::class, 'acceptInvite'])->name('frontend.team-invite.accept');
+    Route::post('/team-invite/{member}/reject', [\App\Http\Controllers\TeamController::class, 'rejectInvite'])->name('frontend.team-invite.reject');
+
+    Route::get('/my-event/{slug}', [LandingPageController::class, 'myEventDetail'])->name('frontend.my-event.show');
+    Route::delete('/my-event/{slug}/cancel', [LandingPageController::class, 'cancelRegistration'])->name('frontend.my-event.cancel');
+    Route::post('/my-event/{slug}/documents/{requirement}', [\App\Http\Controllers\ParticipantDocumentController::class, 'upload'])->name('frontend.my-event.documents.upload');
 });
 
 /*
@@ -90,9 +103,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::middleware(['role:baak,kemahasiswaan,superuser,penanggung_jawab'])->group(function () {
+    Route::middleware(['role:baak,kemahasiswaan,superuser,penanggung_jawab,ketua_pelaksana,panitia'])->group(function () {
         // === DASHBOARD UTAMA ===
-        // Penanggung Jawab juga boleh masuk area dashboard admin
+        // Admin & Pengurus (Penanggung Jawab, Ketua Pelaksana, Panitia) boleh masuk area dashboard admin
         Route::get('/dashboard', [DashboardAnalyticsController::class, 'index'])->name('dashboard');
 
         // === MANAJEMEN SERTIFIKAT (View) ===
@@ -193,11 +206,21 @@ Route::middleware(['auth', 'role:superuser'])->prefix('admin')->group(function (
 | Penanggung Jawab dibatasi hanya modul Data Event + Sertifikat
 */
 Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab'])->prefix('admin')->group(function () {
-    Route::resource('events', AdminEventController::class)->names('events');
+    Route::get('events', [AdminEventController::class, 'index'])->name('events.index');
+    Route::get('events/create', [AdminEventController::class, 'create'])->name('events.create');
+    Route::post('events', [AdminEventController::class, 'store'])->name('events.store');
+    Route::delete('events/{event}', [AdminEventController::class, 'destroy'])->name('events.destroy');
 
     // Generate QR Event (dari halaman Data Event)
     Route::get('events/{slug}/generate-qr', [AdminQrController::class, 'generate'])->name('admin.events.qr');
     Route::post('events/{event}/generate-qr/refresh', [AdminQrController::class, 'refresh'])->name('admin.events.qr.refresh');
+});
+
+// Edit/Update dibuka juga untuk Ketua Pelaksana (khusus lomba yang ditugaskan padanya) —
+// otorisasi granular tetap dicek di AdminEventController::authorizeEventByRole().
+Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab,ketua_pelaksana'])->prefix('admin')->group(function () {
+    Route::get('events/{event}/edit', [AdminEventController::class, 'edit'])->name('events.edit');
+    Route::put('events/{event}', [AdminEventController::class, 'update'])->name('events.update');
 });
 
 /*
@@ -211,9 +234,71 @@ Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab,k
     ->prefix('admin')->group(function () {
         Route::get('lomba', [CompetitionController::class, 'index'])->name('lomba.index');
         Route::get('lomba/{event}/kelola', [CompetitionController::class, 'manage'])->name('lomba.manage');
+        Route::get('lomba/search-mahasiswa', [CompetitionController::class, 'searchMahasiswa'])->name('lomba.search-mahasiswa');
         Route::post('lomba/{event}/ketua', [CompetitionController::class, 'assignKetua'])->name('lomba.assign-ketua');
         Route::post('lomba/{event}/panitia', [CompetitionController::class, 'storePanitia'])->name('lomba.panitia.store');
         Route::delete('lomba/{event}/panitia/{committee}', [CompetitionController::class, 'destroyPanitia'])->name('lomba.panitia.destroy');
+
+        Route::get('lomba/{event}/cabang/create', [CompetitionController::class, 'createBranch'])->name('lomba.cabang.create');
+        Route::post('lomba/{event}/cabang', [CompetitionController::class, 'storeBranch'])->name('lomba.cabang.store');
+        Route::get('lomba/{event}/cabang/{branch}/edit', [CompetitionController::class, 'editBranch'])->name('lomba.cabang.edit');
+        Route::put('lomba/{event}/cabang/{branch}', [CompetitionController::class, 'updateBranch'])->name('lomba.cabang.update');
+        Route::delete('lomba/{event}/cabang/{branch}', [CompetitionController::class, 'destroyBranch'])->name('lomba.cabang.destroy');
+
+        Route::post('lomba/{event}/dokumen', [CompetitionController::class, 'storeDocumentRequirement'])->name('lomba.dokumen.store');
+        Route::put('lomba/{event}/dokumen/{requirement}', [CompetitionController::class, 'updateDocumentRequirement'])->name('lomba.dokumen.update');
+        Route::delete('lomba/{event}/dokumen/{requirement}', [CompetitionController::class, 'destroyDocumentRequirement'])->name('lomba.dokumen.destroy');
+        Route::post('lomba/{event}/dokumen/{requirement}/reorder', [CompetitionController::class, 'reorderDocumentRequirement'])->name('lomba.dokumen.reorder');
+
+        // Kriteria Penilaian
+        Route::get('lomba/{event}/kriteria', [CompetitionController::class, 'kriteria'])->name('lomba.kriteria.index');
+        Route::post('lomba/{event}/kriteria', [CompetitionController::class, 'storeAssessmentCriterion'])->name('lomba.kriteria.store');
+        Route::put('lomba/{event}/kriteria/{criterion}', [CompetitionController::class, 'updateAssessmentCriterion'])->name('lomba.kriteria.update');
+        Route::delete('lomba/{event}/kriteria/{criterion}', [CompetitionController::class, 'destroyAssessmentCriterion'])->name('lomba.kriteria.destroy');
+
+        // Skoring / Penilaian
+        Route::get('lomba/{event}/penilaian', [\App\Http\Controllers\Admin\ScoreController::class, 'index'])->name('lomba.penilaian');
+        Route::post('lomba/{event}/penilaian/{registration}', [\App\Http\Controllers\Admin\ScoreController::class, 'store'])->name('lomba.penilaian.store');
+        Route::get('lomba/{event}/leaderboard', [\App\Http\Controllers\Admin\ScoreController::class, 'leaderboard'])->name('lomba.leaderboard');
+
+        Route::get('lomba/{event}/berkas', [CompetitionController::class, 'documentReview'])->name('lomba.berkas');
+        Route::post('lomba/{event}/berkas/{document}/review', [CompetitionController::class, 'reviewDocument'])->name('lomba.berkas.review');
+
+        Route::get('lomba/{event}/export/peserta/excel', [CompetitionController::class, 'exportPesertaExcel'])->name('lomba.export.peserta.excel');
+        Route::get('lomba/{event}/export/peserta/pdf', [CompetitionController::class, 'exportPesertaPdf'])->name('lomba.export.peserta.pdf');
+
+        Route::get('lomba/{event}/juara', [CompetitionController::class, 'juara'])->name('lomba.juara');
+        Route::post('lomba/{event}/juara', [CompetitionController::class, 'storeJuara'])->name('lomba.juara.store');
+        Route::delete('lomba/{event}/juara/{juara}', [CompetitionController::class, 'destroyJuara'])->name('lomba.juara.destroy');
+        Route::get('lomba/{event}/export/juara/pdf', [CompetitionController::class, 'exportJuaraPdf'])->name('lomba.export.juara.pdf');
+
+        Route::get('lomba/{event}/certificates', [\App\Http\Controllers\Admin\LombaCertificateController::class, 'manage'])->name('lomba.certificates.manage');
+        Route::get('lomba/{event}/certificates/{jenis}/designer', [\App\Http\Controllers\Admin\LombaCertificateController::class, 'designer'])->name('lomba.certificates.designer');
+        Route::get('lomba/{event}/certificates/template', [\App\Http\Controllers\Admin\LombaCertificateController::class, 'templateShow'])->name('lomba.certificates.template.show');
+        Route::post('lomba/{event}/certificates/template', [\App\Http\Controllers\Admin\LombaCertificateController::class, 'templateStore'])->name('lomba.certificates.template.store');
+    });
+
+Route::middleware(['auth', 'role:baak,kemahasiswaan,superuser,penanggung_jawab,ketua_pelaksana'])
+    ->prefix('admin/api')->group(function () {
+        Route::get('lomba-certificates/{event}/{jenis}/participants', [\App\Http\Controllers\Admin\LombaCertificateController::class, 'apiParticipants'])->name('lomba.certificates.api.participants');
+        Route::post('lomba-certificates/upload', [\App\Http\Controllers\Admin\LombaCertificateController::class, 'uploadGenerated'])->name('lomba.certificates.api.upload');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Bendahara — Kelola Pembayaran Lomba
+|--------------------------------------------------------------------------
+| Akses ditentukan sepenuhnya di controller (Event::canBeManagedByBendahara(),
+| berbasis Kepanitiaan jabatan "Bendahara Lomba"), BUKAN oleh role user — jadi
+| middleware di sini cukup memastikan user sudah login.
+*/
+Route::middleware(['auth'])
+    ->prefix('admin')->group(function () {
+        Route::get('payment', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payment.index');
+        Route::get('payment/{event}', [\App\Http\Controllers\Admin\PaymentController::class, 'show'])->name('payment.show');
+        Route::post('payment/{event}/{document}/verify', [\App\Http\Controllers\Admin\PaymentController::class, 'verify'])->name('payment.verify');
+        Route::get('payment/{event}/export/excel', [\App\Http\Controllers\Admin\PaymentController::class, 'exportExcel'])->name('payment.export.excel');
+        Route::get('payment/{event}/export/pdf', [\App\Http\Controllers\Admin\PaymentController::class, 'exportPdf'])->name('payment.export.pdf');
     });
 
 // Route akses data master (via URL berbeda tapi controller sama)

@@ -48,14 +48,14 @@
 
                 #info-slider .info-title {
                     display: inline-block;
-                    font-size: 0.79rem;
+                    font-size: 0.69rem;
                     font-weight: 800;
                 }
 
                 #info-slider .info-body {
                     display: inline-block;
                     white-space: nowrap;
-                    font-size: 0.74rem;
+                    font-size: 0.64rem;
                     font-weight: 600;
                     opacity: 0.9;
                 }
@@ -64,7 +64,7 @@
                     border-radius: 9999px;
                     background: rgba(171, 2, 28, 0.11);
                     padding: 2px 8px;
-                    font-size: 0.69rem;
+                    font-size: 0.6rem;
                     font-weight: 700;
                 }
 
@@ -101,7 +101,7 @@
                     background: transparent;
                     box-shadow: none;
                     color: #ab021c;
-                    font-size: 14px;
+                    font-size: 12px;
                     line-height: 1;
                 }
 
@@ -279,7 +279,244 @@
         </section>
 
         <section class="mx-auto w-full px-0.5 py-5 md:py-6" id="event-list">
-            <div class="mb-4 text-center">
+            <style>
+                #event-list .event-grid {
+                    display: grid;
+                    grid-template-columns: repeat(1, minmax(0, 1fr));
+                    gap: 20px;
+                }
+                @media (min-width: 640px) {
+                    #event-list .event-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 24px;
+                    }
+                }
+                @media (min-width: 1024px) {
+                    #event-list .event-grid {
+                        grid-template-columns: repeat(3, minmax(0, 1fr));
+                        gap: 26px;
+                    }
+                }
+                #event-list .event-card {
+                    background: #ffffff;
+                    border-radius: 18px;
+                    border: 1px solid #eef2f6;
+                    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+                }
+                #event-list .event-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 14px 30px -4px rgba(15, 23, 42, 0.1);
+                    border-color: #e2e8f0;
+                }
+                #event-list .event-thumb-wrap {
+                    position: relative;
+                    width: 100%;
+                    aspect-ratio: 16 / 9.5;
+                    overflow: hidden;
+                    background: #f1f5f9;
+                    display: block;
+                }
+                #event-list .event-thumb-img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                    transition: transform 0.4s ease;
+                }
+                #event-list .event-card:hover .event-thumb-img {
+                    transform: scale(1.04);
+                }
+                #event-list .event-badge-group {
+                    position: absolute;
+                    top: 12px;
+                    left: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    z-index: 2;
+                }
+                #event-list .event-badge-red {
+                    background: #d60029;
+                    color: #ffffff;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+                }
+                #event-list .event-badge-light {
+                    background: rgba(255, 255, 255, 0.95);
+                    color: #1e293b;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    backdrop-filter: blur(4px);
+                }
+                #event-list .event-img-footer {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.45) 55%, rgba(0, 0, 0, 0) 100%);
+                    padding: 24px 14px 10px 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 10px;
+                    z-index: 2;
+                }
+                #event-list .event-location {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    color: #ffffff;
+                    font-size: 12px;
+                    font-weight: 600;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    min-width: 0;
+                }
+                #event-list .event-date {
+                    color: #ffffff;
+                    font-size: 12px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                }
+                #event-list .event-body {
+                    padding: 18px 18px 20px 18px;
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    justify-content: space-between;
+                    gap: 14px;
+                }
+                #event-list .event-category-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    color: #ab021c;
+                    font-size: 12.5px;
+                    font-weight: 700;
+                }
+                #event-list .event-title {
+                    color: #0f172a;
+                    font-size: 16.5px;
+                    font-weight: 800;
+                    line-height: 1.35;
+                    margin: 0;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    transition: color 0.15s ease;
+                }
+                #event-list .event-card:hover .event-title {
+                    color: #ab021c;
+                }
+                #event-list .event-desc {
+                    color: #64748b;
+                    font-size: 12.5px;
+                    line-height: 1.55;
+                    margin: 0;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                #event-list .event-format-pill {
+                    background: #f4f5f9;
+                    border-radius: 12px;
+                    padding: 10px 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
+                    margin-top: 2px;
+                }
+                #event-list .event-format-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 7px;
+                    color: #1e293b;
+                    font-size: 12px;
+                    font-weight: 700;
+                    min-width: 0;
+                }
+                #event-list .event-format-left span {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                #event-list .event-format-right {
+                    color: #ab021c;
+                    font-size: 12px;
+                    font-weight: 800;
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                }
+                #event-list .event-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-top: 4px;
+                }
+                #event-list .event-btn-register {
+                    flex: 1;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #d60029;
+                    color: #ffffff;
+                    font-size: 13px;
+                    font-weight: 700;
+                    padding: 11px 16px;
+                    border-radius: 12px;
+                    text-decoration: none;
+                    transition: background 0.2s ease, transform 0.15s ease;
+                    text-align: center;
+                    letter-spacing: 0.01em;
+                }
+                #event-list .event-btn-register:hover {
+                    background: #b80022;
+                    color: #ffffff;
+                }
+                #event-list .event-btn-bookmark {
+                    width: 44px;
+                    height: 44px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #eef2f8;
+                    color: #475569;
+                    border-radius: 12px;
+                    border: none;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+                }
+                #event-list .event-btn-bookmark:hover {
+                    background: #e2e8f0;
+                    color: #1e293b;
+                }
+                #event-list .event-btn-bookmark.active {
+                    background: #fee2e2;
+                    color: #dc2626;
+                }
+            </style>
+
+            <div class="mb-5 text-center">
                 <h2 class="font-['Sora',sans-serif] text-[0.9rem] sm:text-[1.05rem] md:text-[1.3rem] lg:text-[1.5rem] font-extrabold uppercase tracking-[0.55px] md:tracking-[0.85px] text-[#ab021c]">
                     Event Terbaru
                 </h2>
@@ -295,51 +532,188 @@
                     Belum ada event untuk ditampilkan.
                 </div>
             @else
-                <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-3 lg:grid-cols-4 lg:gap-4">
+                <div class="event-grid">
                     @foreach($events as $event)
                         @php
                             $thumb = $event->thumbnail;
                             if ($thumb && !\Illuminate\Support\Str::startsWith($thumb, ['http://', 'https://'])) {
                                 $thumb = asset($thumb);
                             }
+                            $thumb = $thumb ?: 'https://placehold.co/640x360/ffffff/ab021c?text=Event+Teknokrat+University';
+
                             $dateLabel = $event->tanggal_pelaksanaan
                                 ? \Carbon\Carbon::parse($event->tanggal_pelaksanaan)->format('d M Y')
-                                : '-';
-                            $placeLabel = \Illuminate\Support\Str::limit($event->tempat_pelaksanaan ?: 'Lokasi', 14, '...');
+                                : null;
+                            $placeLabel = $event->tempat_pelaksanaan;
+
+                            $badgeType = $event->category ? strtoupper($event->category->nama_kategori) : ($event->type === 'lomba' ? 'LOMBA' : 'EVENT');
+                            $badgeSecondary = $event->partisipasi_skala ? strtoupper($event->partisipasi_skala) : null;
+
+                            $categoryLabel = $event->partisipasi_prodi ?: ($event->category ? $event->category->nama_kategori : null);
+
+                            $descText = trim(strip_tags((string) $event->deskripsi));
+
+                            $waktuPelaksanaan = $event->waktu_pelaksanaan
+                                ? \Carbon\Carbon::parse($event->waktu_pelaksanaan)->format('H:i') . ($event->waktu_pelaksanaan_selesai ? ' - ' . \Carbon\Carbon::parse($event->waktu_pelaksanaan_selesai)->format('H:i') : '') . ' WIB'
+                                : null;
+
+                            $tipeBayarLabel = null;
+                            if ($event->tipe_bayar) {
+                                if (strtolower($event->tipe_bayar) === 'berbayar') {
+                                    $tipeBayarLabel = (isset($event->biaya) && $event->biaya > 0)
+                                        ? 'Rp ' . number_format($event->biaya, 0, ',', '.')
+                                        : 'Berbayar';
+                                } else {
+                                    $tipeBayarLabel = 'Gratis';
+                                }
+                            }
+
+                            $actionLabel = $event->is_registration_closed
+                                ? 'Lihat Detail'
+                                : ($event->type === 'lomba' ? 'Daftar Lomba' : 'Daftar Event');
+                            $eventUrl = route('frontend.events.show', $event->slug ?: $event->id);
                         @endphp
-                        <a
-                            href="{{ route('frontend.events.show', $event->slug ?: $event->id) }}"
-                            class="relative block overflow-hidden rounded-2xl bg-white shadow-sm"
-                            style="aspect-ratio: 3/4"
-                        >
-                            <img
-                                src="{{ $thumb ?: 'https://placehold.co/640x360/ffffff/ab021c?text=Event+Teknokrat+University' }}"
-                                alt="{{ $event->nama_event }}"
-                                class="absolute inset-0 h-full w-full object-cover"
-                            >
+                        <article class="event-card">
+                            {{-- Image and Badges --}}
+                            <a href="{{ $eventUrl }}" class="event-thumb-wrap" title="{{ $event->nama_event }}">
+                                <img
+                                    src="{{ $thumb }}"
+                                    alt="{{ $event->nama_event }}"
+                                    class="event-thumb-img"
+                                    loading="lazy"
+                                >
 
-                            <div class="absolute inset-0 bg-[linear-gradient(to_top,rgba(123,15,21,0.96)_0%,rgba(123,15,21,0.9)_16%,rgba(123,15,21,0.0)_30%)]"></div>
+                                <div class="event-badge-group">
+                                    <span class="event-badge-red">{{ $badgeType }}</span>
+                                    @if($badgeSecondary)
+                                        <span class="event-badge-light">{{ $badgeSecondary }}</span>
+                                    @endif
+                                </div>
 
-                            <div class="absolute left-2 top-2 inline-flex rounded-full bg-[#7b0f15] px-1.5 py-0.5 text-[8px] font-bold text-white shadow-sm sm:px-2 sm:py-1 sm:text-[9px] md:left-3 md:top-3 md:px-3 md:py-1 md:text-[11px]">
-                                {{ $dateLabel }}
-                            </div>
-                            <div class="absolute right-2 top-2 inline-flex max-w-[62px] truncate rounded-full bg-[#7b0f15] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.2px] text-white shadow-sm sm:max-w-[72px] sm:px-2 sm:py-1 sm:text-[9px] md:right-3 md:top-3 md:max-w-none md:px-3 md:py-1 md:text-[11px] md:tracking-wide">
-                                {{ $placeLabel }}
-                            </div>
+                                @if($placeLabel || $dateLabel)
+                                    <div class="event-img-footer">
+                                        <div class="event-location">
+                                            @if($placeLabel)
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                    <circle cx="12" cy="10" r="3"></circle>
+                                                </svg>
+                                                <span>{{ $placeLabel }}</span>
+                                            @endif
+                                        </div>
+                                        @if($dateLabel)
+                                            <span class="event-date">{{ $dateLabel }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </a>
 
-                            <div class="absolute inset-x-0 bottom-0 p-2 md:p-4 text-justify">
-                                <h3 class="text-[0.45rem] sm:text-[0.58rem] md:text-[0.8rem] lg:text-[0.95rem] font-semibold leading-[1.12] text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.7)]">
-                                    {{ $event->nama_event }}
-                                </h3>
+                            {{-- Card Body --}}
+                            <div class="event-body">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    @if($categoryLabel)
+                                        <div class="event-category-row">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ab021c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                                            </svg>
+                                            <span>{{ $categoryLabel }}</span>
+                                        </div>
+                                    @endif
+
+                                    <h3 class="event-title">
+                                        <a href="{{ $eventUrl }}" style="color: inherit; text-decoration: none;">
+                                            {{ $event->nama_event }}
+                                        </a>
+                                    </h3>
+
+                                    @if($descText !== '')
+                                        <p class="event-desc">
+                                            {{ $descText }}
+                                        </p>
+                                    @endif
+                                </div>
+
+                                <div>
+                                    @if($waktuPelaksanaan || $tipeBayarLabel)
+                                        <div class="event-format-pill">
+                                            @if($waktuPelaksanaan)
+                                                <div class="event-format-left">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ab021c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="13" r="8"/>
+                                                        <path d="M12 9v4l2.5 2"/>
+                                                        <path d="M12 5V2"/>
+                                                        <path d="M10 2h4"/>
+                                                    </svg>
+                                                    <span>{{ $waktuPelaksanaan }}</span>
+                                                </div>
+                                            @else
+                                                <div></div>
+                                            @endif
+
+                                            @if($tipeBayarLabel)
+                                                <span class="event-format-right">{{ $tipeBayarLabel }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    <div class="event-actions">
+                                        <a href="{{ $eventUrl }}" class="event-btn-register">
+                                            {{ $actionLabel }}
+                                        </a>
+                                        <button
+                                            type="button"
+                                            class="event-btn-bookmark"
+                                            data-event-id="{{ $event->id }}"
+                                            aria-label="Simpan Event"
+                                            title="Simpan Event"
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </a>
+                        </article>
                     @endforeach
                 </div>
 
-                <div class="mt-5 flex justify-center">
+                <div class="mt-8 flex justify-center">
                     @include('frontend.partials.pager', ['paginator' => $events])
                 </div>
             @endif
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('saved_events') || '[]');
+                        document.querySelectorAll('#event-list .event-btn-bookmark').forEach(function (btn) {
+                            const id = btn.getAttribute('data-event-id');
+                            const svg = btn.querySelector('svg');
+                            if (saved.includes(id)) {
+                                btn.classList.add('active');
+                                if (svg) svg.setAttribute('fill', 'currentColor');
+                            }
+                            btn.addEventListener('click', function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                let list = JSON.parse(localStorage.getItem('saved_events') || '[]');
+                                if (list.includes(id)) {
+                                    list = list.filter(function (item) { return item !== id; });
+                                    btn.classList.remove('active');
+                                    if (svg) svg.setAttribute('fill', 'none');
+                                } else {
+                                    list.push(id);
+                                    btn.classList.add('active');
+                                    if (svg) svg.setAttribute('fill', 'currentColor');
+                                }
+                                localStorage.setItem('saved_events', JSON.stringify(list));
+                            });
+                        });
+                    } catch (e) {}
+                });
+            </script>
         </section>
 
         @include('frontend.partials.lomba-section')

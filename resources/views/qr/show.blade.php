@@ -28,12 +28,12 @@
         }
         .title {
             margin: 0;
-            font-size: 1.45rem;
+            font-size: 1.35rem;
             font-weight: 800;
         }
         .subtitle {
             margin: 8px 0 16px;
-            font-size: 0.94rem;
+            font-size: 0.84rem;
             font-weight: 700;
             color: rgba(171, 2, 28, 0.8);
         }
@@ -46,13 +46,13 @@
         }
         .meta {
             margin-top: 12px;
-            font-size: 0.82rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: rgba(171, 2, 28, 0.78);
         }
         .token {
             margin-top: 10px;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: rgba(171, 2, 28, 0.65);
             word-break: break-all;
         }

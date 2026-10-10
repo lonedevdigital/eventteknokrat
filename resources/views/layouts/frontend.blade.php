@@ -4,12 +4,30 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Teknokrat University Event') }}</title>
+    @php
+        $metaDescriptionDefault = 'E-Event Teknokrat — platform pendaftaran dan informasi event serta lomba resmi Universitas Teknokrat Indonesia.';
+        $ogImageDefault = asset('logo_full.png');
+    @endphp
+    <title>@hasSection('title')@yield('title') — @endif{{ config('app.name') }}</title>
+    <meta name="description" content="@yield('meta_description', $metaDescriptionDefault)">
+    <meta name="robots" content="@yield('robots', 'index, follow')">
+    <link rel="canonical" href="{{ $canonicalUrl ?? url()->current() }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ $canonicalUrl ?? url()->current() }}">
+    <meta property="og:title" content="@hasSection('title')@yield('title')@else{{ config('app.name') }}@endif">
+    <meta property="og:description" content="@yield('meta_description', $metaDescriptionDefault)">
+    <meta property="og:image" content="@yield('og_image', $ogImageDefault)">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@hasSection('title')@yield('title')@else{{ config('app.name') }}@endif">
+    <meta name="twitter:description" content="@yield('meta_description', $metaDescriptionDefault)">
+    <meta name="twitter:image" content="@yield('og_image', $ogImageDefault)">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('src/output.css') }}">
+    @stack('schema')
 </head>
 <body class="min-h-screen bg-white font-['Manrope',sans-serif] text-[#ab021c]">
 @php
@@ -27,6 +45,18 @@
         ['label' => 'List Event', 'url' => route('frontend.events')],
         ['label' => 'Sertifikat', 'url' => route('frontend.certificates')],
     ];
+
+    // Jika user bertindak sebagai Administrator atau bagian dari Pengurus,
+    // munculkan tombol menu ke Dashboard Admin di navigasi atas.
+    if (auth()->check() && auth()->user()->isStaff()) {
+        $authMenu[] = ['label' => 'Dashboard Admin', 'url' => route('dashboard')];
+    }
+
+    // Ditugaskan sebagai "Bendahara Lomba" di Kepanitiaan salah satu lomba —
+    // tautan langsung ke Kelola Pembayaran (halaman admin), tanpa perlu role admin.
+    if (auth()->check() && auth()->user()->isBendaharaLomba()) {
+        $authMenu[] = ['label' => 'Kelola Pembayaran Lomba', 'url' => route('payment.index')];
+    }
 
     $activeUrl = url()->current();
     $menuItems = auth()->check() ? $authMenu : $guestMenu;

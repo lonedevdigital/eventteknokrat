@@ -39,9 +39,14 @@ class ProfileController extends Controller
                 ->first();
         }
 
+        $isAdmin = $user->isStaff();
+        $isExternal = $user->isExternalStudent();
+
         return view('profile.edit', [
             'user' => $user,
             'mahasiswa' => $mahasiswa,
+            'isAdmin' => $isAdmin,
+            'isExternal' => $isExternal,
         ]);
     }
 

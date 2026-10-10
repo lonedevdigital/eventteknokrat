@@ -111,7 +111,7 @@
                                 {{ $lomba->tanggal_pelaksanaan ? \Carbon\Carbon::parse($lomba->tanggal_pelaksanaan)->format('d/m/Y') : '—' }}
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('lomba.manage', $lomba->id) }}" class="btn btn-sm btn-action-flat btn-green-flat">
+                                <a href="{{ route('lomba.manage', $lomba->slug) }}" class="btn btn-sm btn-action-flat btn-green-flat">
                                     <i class="fas fa-cog mr-1"></i> Kelola
                                 </a>
                             </td>

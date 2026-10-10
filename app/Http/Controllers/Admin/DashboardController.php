@@ -80,19 +80,19 @@ class DashboardController extends Controller
         // B. Total Mahasiswa (Global - karena ini data master)
         $totalMahasiswa = Mahasiswa::count();
 
-        // C. Total Registrasi & Hadir (Harus difilter by Event Role juga)
-        // Kita cari EventRegistration dimana event-nya termasuk dalam akses user
+        // C. Base Registrations (Harus difilter by Event Role)
         $baseRegistrations = EventRegistration::whereHas('event', function ($q) use ($userRole, $user) {
             $this->applyEventRoleFilter($q, $userRole, $user);
         });
 
-        $totalRegistered = (clone $baseRegistrations)->count();
-        $totalAttended   = (clone $baseRegistrations)->where('status', 'attended')->count();
-
-        // Persentase
-        $attendanceRate = $totalRegistered > 0
-            ? round(($totalAttended / $totalRegistered) * 100, 2)
+        // Keterlibatan Mahasiswa (Student Engagement Rate)
+        $uniqueEngagedStudents = (clone $baseRegistrations)->distinct('user_id')->count('user_id');
+        $engagementRate = $totalMahasiswa > 0
+            ? round(($uniqueEngagedStudents / $totalMahasiswa) * 100, 2)
             : 0;
+
+        // Total Sertifikat Diterbitkan
+        $totalSertifikat = (clone $baseRegistrations)->whereNotNull('certificate_url')->count();
 
         // ==========================================================
         // 3. LIST EVENT (Completed & Upcoming)
@@ -182,12 +182,12 @@ class DashboardController extends Controller
             ];
         })->toArray(); // Ubah ke array agar mudah di loop di blade
 
-        return view('admin.dashboard.index', compact(
+        return view('admin.home.index', compact(
             'totalEvents',
             'totalMahasiswa',
-            'totalRegistered',
-            'totalAttended',
-            'attendanceRate',
+            'engagementRate',
+            'uniqueEngagedStudents',
+            'totalSertifikat',
             'completedEvents',
             'notYetEvents',
             'filter',

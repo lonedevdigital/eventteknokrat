@@ -1,7 +1,13 @@
 @extends('layouts.frontend')
 
+@section('title', 'Profil Saya')
+@section('robots', 'noindex, nofollow')
+
 @section('content')
     @php
+        $isAdmin = $isAdmin ?? ($user?->isStaff() ?? false);
+        $isExternal = $isExternal ?? ($user?->isExternalStudent() ?? false);
+
         $genderLabel = match ($mahasiswa?->gender) {
             'L' => 'Laki-laki',
             'P' => 'Perempuan',
@@ -12,16 +18,64 @@
             || $errors->has('new_password')
             || $errors->has('new_password_confirm')
             || (bool) session('error');
+
+        $initial = strtoupper(mb_substr(trim((string) $user->name) ?: '?', 0, 1));
+
+        if ($isAdmin) {
+            $badgeLabel = 'Status Administrator';
+            $badgeClasses = 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-300';
+            $dotClasses = 'bg-emerald-500';
+        } elseif ($isExternal) {
+            $badgeLabel = 'Mahasiswa Diluar Teknokrat';
+            $badgeClasses = 'bg-slate-100 text-slate-700 ring-1 ring-slate-300';
+            $dotClasses = 'bg-slate-400';
+        } else {
+            $badgeLabel = 'Mahasiswa Teknokrat';
+            $badgeClasses = 'bg-[#ab021c]/10 text-[#ab021c] ring-1 ring-[#ab021c]/25';
+            $dotClasses = 'bg-[#ab021c]';
+        }
+
+        // Susun field biodata sesuai jenis akun — lihat ProfileController::edit() untuk alasan pemisahannya.
+        if ($mahasiswa) {
+            $bioTitle = $isAdmin ? 'Biodata Mahasiswa (Tertaut ke Akun Admin)' : 'Biodata Mahasiswa';
+            $bioFields = [
+                ['NPM', $mahasiswa->npm_mahasiswa ?: '-'],
+                ['Nama', $mahasiswa->nama_mahasiswa ?: '-'],
+                ['Angkatan', $mahasiswa->angkatan ?: '-'],
+                ['Program Studi', $mahasiswa->nama_program_studi ?: '-'],
+                ['Fakultas', $mahasiswa->nama_fakultas ?: '-'],
+                ['Jenis Kelamin', $genderLabel],
+                ['No. Telepon', $mahasiswa->no_telepon ?: '-'],
+                ['SKS', $mahasiswa->sks ?: '-'],
+                ['IPK', $mahasiswa->ipk ?: '-'],
+            ];
+            if ($showUsername) {
+                $bioFields[] = ['Username', $user->username ?: '-'];
+            }
+            $bioFields[] = ['Email', $user->email ?: '-'];
+        } elseif ($isExternal) {
+            $bioTitle = 'Data Pendaftaran';
+            $bioFields = [
+                ['Nama', $user->name ?: '-'],
+                ['Email', $user->email ?: '-'],
+                ['NPM', $user->npm ?: '- (bukan mahasiswa)'],
+                ['Asal Sekolah / Universitas', $user->institution->nama ?? '-'],
+            ];
+        } elseif ($isAdmin) {
+            $bioTitle = 'Data Akun';
+            $bioFields = [
+                ['Nama', $user->name ?: '-'],
+                ['Username', $user->username ?: '-'],
+                ['Email', $user->email ?: '-'],
+                ['Role', strtoupper(str_replace('_', ' ', $user->role ?: '-'))],
+            ];
+        } else {
+            $bioTitle = 'Biodata Mahasiswa';
+            $bioFields = [];
+        }
     @endphp
 
     <section class="rounded-3xl bg-white p-5 shadow-sm md:p-6">
-        <div class="mb-4">
-            <h1 class="font-['Sora',sans-serif] text-2xl font-extrabold text-[#ab021c]">My Profile</h1>
-            <p class="mt-1 text-sm font-semibold text-[#ab021c]/85">
-                Data akun dan biodata mahasiswa dari database.
-            </p>
-        </div>
-
         @if(session('error'))
             <div class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                 {{ session('error') }}
@@ -34,34 +88,49 @@
             </div>
         @endif
 
-        <article class="relative overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#ab021c]/10">
-            <div class="mb-3 h-3 w-full rounded-full bg-[linear-gradient(90deg,_#be0a28_0%,_#be0a28_52%,_#8f0018_52%,_#8f0018_100%)]"></div>
-            <h2 class="mb-2 text-base font-extrabold text-[#ab021c]">Biodata Mahasiswa</h2>
+        {{-- HEADER PROFIL --}}
+        <article class="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,_#ab021c_0%,_#8f0018_100%)] p-5 shadow-sm md:p-6">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10"></div>
+            <div class="pointer-events-none absolute -bottom-14 right-16 h-32 w-32 rounded-full bg-white/5"></div>
+            <div class="relative flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 font-['Sora',sans-serif] text-2xl font-extrabold text-white ring-1 ring-white/30">
+                    {{ $initial }}
+                </div>
+                <div class="min-w-0">
+                    <h1 class="truncate font-['Sora',sans-serif] text-xl font-extrabold text-white md:text-2xl">
+                        {{ $user->name ?: 'Pengguna' }}
+                    </h1>
+                    <p class="mt-0.5 truncate text-sm font-semibold text-white/80">{{ $user->email ?: '-' }}</p>
+                    <span class="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-extrabold {{ $badgeClasses }}">
+                        <span class="h-1.5 w-1.5 rounded-full {{ $dotClasses }}"></span>
+                        {{ $badgeLabel }}
+                    </span>
+                </div>
+            </div>
+        </article>
 
-            @if(!$mahasiswa)
+        {{-- BIODATA --}}
+        <article class="relative mt-4 overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#ab021c]/10 md:p-5">
+            <div class="mb-4 h-3 w-full rounded-full bg-[linear-gradient(90deg,_#be0a28_0%,_#be0a28_52%,_#8f0018_52%,_#8f0018_100%)]"></div>
+            <h2 class="mb-3 text-base font-extrabold text-[#ab021c]">{{ $bioTitle }}</h2>
+
+            @if(empty($bioFields))
                 <p class="text-sm font-semibold text-[#ab021c]/80">
                     Data mahasiswa belum ditemukan untuk akun ini.
                 </p>
             @else
-                <div class="space-y-2 text-sm">
-                    <p><span class="font-bold text-[#ab021c]">NPM:</span> {{ $mahasiswa->npm_mahasiswa ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">Nama:</span> {{ $mahasiswa->nama_mahasiswa ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">Angkatan:</span> {{ $mahasiswa->angkatan ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">Program Studi:</span> {{ $mahasiswa->nama_program_studi ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">Fakultas:</span> {{ $mahasiswa->nama_fakultas ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">Jenis Kelamin:</span> {{ $genderLabel }}</p>
-                    <p><span class="font-bold text-[#ab021c]">No. Telepon:</span> {{ $mahasiswa->no_telepon ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">SKS:</span> {{ $mahasiswa->sks ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">IPK:</span> {{ $mahasiswa->ipk ?: '-' }}</p>
-                    @if($showUsername)
-                        <p><span class="font-bold text-[#ab021c]">Username:</span> {{ $user->username }}</p>
-                    @endif
-                    <p><span class="font-bold text-[#ab021c]">Email:</span> {{ $user->email ?: '-' }}</p>
-                    <p><span class="font-bold text-[#ab021c]">Status:</span> {{ strtoupper($user->role ?: '-') }}</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    @foreach($bioFields as [$label, $value])
+                        <div class="rounded-xl bg-[#ab021c]/5 px-4 py-3">
+                            <p class="text-[11px] font-bold uppercase tracking-wide text-[#ab021c]/60">{{ $label }}</p>
+                            <p class="mt-0.5 truncate text-sm font-bold text-[#ab021c]" title="{{ $value }}">{{ $value }}</p>
+                        </div>
+                    @endforeach
                 </div>
             @endif
         </article>
 
+        {{-- UBAH PASSWORD --}}
         <article class="relative mt-4 overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#ab021c]/10">
             <div class="mb-3 h-3 w-full rounded-full bg-[linear-gradient(90deg,_#be0a28_0%,_#be0a28_52%,_#8f0018_52%,_#8f0018_100%)]"></div>
             <details class="group" @if($shouldOpenPasswordForm) open @endif>

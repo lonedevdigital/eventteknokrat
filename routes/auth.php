@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Auth\ExternalRegistrationController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -28,6 +29,18 @@ Route::middleware('guest')->group(function () {
 
     Route::post('admin/login', [AuthenticatedSessionController::class, 'storeAdmin'])
         ->name('admin.login.store');
+
+    Route::get('login/external', [AuthenticatedSessionController::class, 'createExternal'])
+        ->name('login.external');
+
+    Route::post('login/external', [AuthenticatedSessionController::class, 'storeExternal'])
+        ->name('login.external.store');
+
+    Route::get('register/external', [ExternalRegistrationController::class, 'create'])
+        ->name('register.external');
+
+    Route::post('register/external', [ExternalRegistrationController::class, 'store'])
+        ->name('register.external.store');
 
     // Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
     //             ->name('password.request');

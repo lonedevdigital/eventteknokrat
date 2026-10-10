@@ -109,7 +109,7 @@
                     </div>
 
                     {{-- FORM START --}}
-                    <form action="{{ route('events.update', $event->id) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('events.update', $event->slug) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 

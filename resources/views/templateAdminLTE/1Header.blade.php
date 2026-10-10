@@ -42,8 +42,30 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     @stack('css')
     <style>
+        /* Terapkan font lebih kecil secara global untuk semua menu secara proporsional */
         body {
             font-family: "Poppins", sans-serif;
+            font-size: 0.9rem !important;
+        }
+
+        /* Mengecilkan font tabel di semua halaman */
+        .table td, .table th {
+            font-size: 0.85rem !important;
+        }
+
+        /* Mengecilkan font tombol dan input form di semua halaman */
+        .btn, .form-control, .custom-select, .input-group-text {
+            font-size: 0.85rem !important;
+        }
+
+        /* Mengecilkan font menu sidebar */
+        .nav-sidebar .nav-link p {
+            font-size: 0.9rem !important;
+        }
+
+        /* Mengecilkan badge dan label kecil */
+        .badge, .small, small {
+            font-size: 0.75rem !important;
         }
 
         #btn-back-to-top {

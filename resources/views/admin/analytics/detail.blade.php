@@ -258,11 +258,11 @@
                         <div class="text-muted small font-weight-bold text-uppercase mb-2" style="letter-spacing:.4px;">
                             Format File
                         </div>
-                        <a href="{{ route('events.export.excel', $event->id) }}"
+                        <a href="{{ route('events.export.excel', $event->slug) }}"
                            class="btn btn-excel btn-block py-2 mb-2">
                             <i class="fas fa-file-excel mr-2"></i> Export Excel (.xlsx)
                         </a>
-                        <a href="{{ route('events.export.pdf', $event->id) }}"
+                        <a href="{{ route('events.export.pdf', $event->slug) }}"
                            class="btn btn-pdf btn-block py-2">
                             <i class="fas fa-file-pdf mr-2"></i> Export PDF
                         </a>

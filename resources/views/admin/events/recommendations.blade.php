@@ -251,7 +251,7 @@
                             </td>
 
                             <td class="text-center">
-                                <form method="POST" action="{{ route('events.recommendations.toggle', $event->id) }}">
+                                <form method="POST" action="{{ route('events.recommendations.toggle', $event->slug) }}">
                                     @csrf
                                     <button type="submit"
                                             class="btn btn-sm btn-action-flat {{ $isRecommended ? 'btn-danger-flat' : ($canAddThisEvent ? 'btn-green-flat' : 'btn-grey-flat') }}"

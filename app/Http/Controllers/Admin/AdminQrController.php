@@ -90,7 +90,7 @@ class AdminQrController extends Controller
             'event'   => $event,
             'qrLink'  => $qrLink,
             'expires' => $qr->expires_at,
-            'refreshEndpoint' => route('admin.events.qr.refresh', $event->id),
+            'refreshEndpoint' => route('admin.events.qr.refresh', $event->slug),
             'lifetimeMinutes' => self::QR_LIFETIME_MINUTES,
         ]);
     }

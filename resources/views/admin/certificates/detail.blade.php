@@ -2602,7 +2602,7 @@
                         },
                     };
 
-                    const res = await fetch("{{ route('certificates.store_template', $event->id) }}", {
+                    const res = await fetch("{{ route('certificates.store_template', $event->slug) }}", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
                         body: JSON.stringify(payload)
@@ -2621,7 +2621,7 @@
 
             async function loadTemplateFromServer() {
                 try {
-                    const res = await fetch("{{ route('certificates.show_template', $event->id) }}?role=default");
+                    const res = await fetch("{{ route('certificates.show_template', $event->slug) }}?role=default");
                     const json = await res.json();
                     if(json.success && json.template && json.template.template_json) {
                         const serverConfig = json.template.template_json;

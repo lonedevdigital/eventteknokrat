@@ -46,18 +46,18 @@
     <div style="margin-bottom: 28px;">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
             <div style="width:4px; height:22px; background:#C0112B; border-radius:99px;"></div>
-            <span style="font-size:12px; font-weight:700; color:#C0112B; letter-spacing:0.12em; text-transform:uppercase;">Terbaru</span>
+            <span style="font-size: 10px; font-weight:700; color:#C0112B; letter-spacing:0.12em; text-transform:uppercase;">Terbaru</span>
         </div>
         <h2 style="font-size:clamp(1.4rem,3vw,2rem); font-weight:800; color:#0F1117; letter-spacing:-0.025em; line-height:1.15;">
             Perlombaan Terbaru
         </h2>
-        <p style="font-size:14px; color:#6B7280; margin-top:6px; font-weight:400; max-width:520px; line-height:1.6;">
+        <p style="font-size: 12px; color:#6B7280; margin-top:6px; font-weight:400; max-width:520px; line-height:1.6;">
             Temukan kompetisi pilihan dan raih prestasi terbaikmu bersama ribuan peserta dari seluruh Indonesia.
         </p>
     </div>
 
     @if($latestLomba->isEmpty())
-        <div style="background:#FFF0F2; border-radius:14px; padding:24px; text-align:center; font-size:14px; font-weight:600; color:#C0112B;">
+        <div style="background:#FFF0F2; border-radius:14px; padding:24px; text-align:center; font-size: 12px; font-weight:600; color:#C0112B;">
             Belum ada perlombaan untuk ditampilkan.
         </div>
     @else
@@ -110,7 +110,7 @@
 
                         {{-- Badge skala --}}
                         @if($skala)
-                            <div style="position:absolute; top:12px; left:12px; background:{{ $skalaBg }}; color:#fff; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 10px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <div style="position:absolute; top:12px; left:12px; background:{{ $skalaBg }}; color:#fff; font-size: 10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 10px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                                 {{ $skala }}
                             </div>
                         @endif
@@ -123,29 +123,29 @@
                         {{-- Tags --}}
                         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                             @if($lomba->category)
-                                <span style="display:inline-block; background:#FFF0F2; color:#C0112B; font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px;">
+                                <span style="display:inline-block; background:#FFF0F2; color:#C0112B; font-size: 10px; font-weight:700; padding:4px 12px; border-radius:20px;">
                                     {{ $lomba->category->nama_kategori }}
                                 </span>
                             @endif
                             @if($prodi)
-                                <span style="display:inline-block; background:#FEF3C7; color:#92400E; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px;">
+                                <span style="display:inline-block; background:#FEF3C7; color:#92400E; font-size: 10px; font-weight:600; padding:4px 12px; border-radius:20px;">
                                     {{ \Illuminate\Support\Str::limit($prodi, 26) }}
                                 </span>
                             @endif
                             @if($isFree)
-                                <span style="display:inline-block; background:#F0FDF4; color:#166534; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px;">Gratis</span>
+                                <span style="display:inline-block; background:#F0FDF4; color:#166534; font-size: 10px; font-weight:600; padding:4px 12px; border-radius:20px;">Gratis</span>
                             @else
-                                <span style="display:inline-block; background:#FFF7ED; color:#9A3412; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px;">Berbayar</span>
+                                <span style="display:inline-block; background:#FFF7ED; color:#9A3412; font-size: 10px; font-weight:600; padding:4px 12px; border-radius:20px;">Berbayar</span>
                             @endif
                         </div>
 
                         {{-- Judul + Deskripsi --}}
                         <div>
-                            <h3 style="font-size:20px; font-weight:800; color:#0F1117; line-height:1.3; letter-spacing:-0.02em; margin-bottom:6px;">
+                            <h3 style="font-size: 18px; font-weight:800; color:#0F1117; line-height:1.3; letter-spacing:-0.02em; margin-bottom:6px;">
                                 {{ $lomba->nama_event }}
                             </h3>
                             @if($desc)
-                                <p class="comp-desc" style="font-size:14px; color:#6B7280; line-height:1.65; font-weight:400; max-width:520px;">
+                                <p class="comp-desc" style="font-size: 12px; color:#6B7280; line-height:1.65; font-weight:400; max-width:520px;">
                                     {{ $desc }}
                                 </p>
                             @endif
@@ -162,7 +162,7 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <div style="font-size:11px; color:#9CA3AF; font-weight:500; line-height:1;">Deadline Pendaftaran</div>
+                                        <div style="font-size: 10px; color:#9CA3AF; font-weight:500; line-height:1;">Deadline Pendaftaran</div>
                                         <div style="font-size:13.5px; color:#C0112B; font-weight:700; margin-top:3px;">{{ $deadline }}</div>
                                     </div>
                                 </div>
@@ -176,7 +176,7 @@
                                         </svg>
                                     </div>
                                     <div style="min-width:0;">
-                                        <div style="font-size:11px; color:#9CA3AF; font-weight:500; line-height:1;">Penyelenggara</div>
+                                        <div style="font-size: 10px; color:#9CA3AF; font-weight:500; line-height:1;">Penyelenggara</div>
                                         <div style="font-size:13.5px; color:#374151; font-weight:700; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px;">{{ $prodi }}</div>
                                     </div>
                                 </div>
@@ -189,11 +189,11 @@
                             <div style="display:flex; align-items:center; gap:12px;">
                                 <a href="{{ route('frontend.events.show', $lomba->slug ?: $lomba->id) }}"
                                    class="btn-detail-lomba"
-                                   style="background:#C0112B; color:#fff; font-size:13px; font-weight:700; padding:10px 24px; border:none; border-radius:9px; cursor:pointer; letter-spacing:0.01em; text-decoration:none; display:inline-block;">
+                                   style="background:#C0112B; color:#fff; font-size: 11px; font-weight:700; padding:10px 24px; border:none; border-radius:9px; cursor:pointer; letter-spacing:0.01em; text-decoration:none; display:inline-block;">
                                     Lihat Detail
                                 </a>
                             </div>
-                            <span style="font-size:12px; color:#9CA3AF; font-weight:400;">
+                            <span style="font-size: 10px; color:#9CA3AF; font-weight:400;">
                                 Dibuka sejak {{ $openedAt }}
                             </span>
                         </div>

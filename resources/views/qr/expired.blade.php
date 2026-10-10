@@ -25,7 +25,7 @@
         }
         h1 {
             margin: 0 0 8px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
         }
         p {
             margin: 0;

@@ -2,8 +2,8 @@
     <a href="{{ route('dashboard') }}" class="brand-link bg-success d-flex align-items-center py-1">
         <img src="{{ asset('logo.png') }}" alt="Logo Universitas Teknokrat Indonesia" class="brand-image mr-4">
         <span class="brand-text font-weight-light d-flex flex-column text-center">
-            <span style="font-size: 12px">Sistem</span>
-            <span style="font-size: 14px">Manajemen Event</span>
+            <span style="font-size: 10px">Sistem</span>
+            <span style="font-size: 12px">Manajemen Event</span>
         </span>
     </a>
 

@@ -17,18 +17,21 @@ class EventCommittee extends Model
         'npm',
         'jabatan',
         'is_custom',
+        'permissions',
     ];
 
     protected $casts = [
         'is_custom' => 'boolean',
+        'permissions' => 'array',
     ];
 
     /**
      * Daftar jabatan panitia bawaan.
+     * Ketua Pelaksana SENGAJA tidak masuk daftar ini — penetapannya cuma lewat kartu
+     * "Tetapkan Ketua Pelaksana" (khusus Penanggung Jawab/Admin), bukan lewat Kepanitiaan.
      * Ketua Pelaksana dapat menambah jenis lain (is_custom = true).
      */
     const DEFAULT_JABATAN = [
-        'Ketua Pelaksana',
         'Sekretaris Lomba',
         'Bendahara Lomba',
         'Panitia Acara',

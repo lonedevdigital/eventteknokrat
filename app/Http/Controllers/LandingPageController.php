@@ -130,17 +130,30 @@ class LandingPageController extends Controller
     public function eventDetail(Request $request, string $slug): View
     {
         $event = Event::query()
-            ->with(['category', 'creator'])
+            ->with(['category', 'creator', 'branches'])
             ->where('slug', $slug)
             ->orWhere('id', $slug)
             ->firstOrFail();
 
         $hasRegistered = false;
+        $registeredBranchIds = [];
         if ($request->user()) {
-            $hasRegistered = EventRegistration::query()
+            $userRegistrations = EventRegistration::query()
                 ->where('event_id', $event->id)
                 ->where('user_id', $request->user()->id)
-                ->exists();
+                ->get();
+
+            $hasRegistered = $userRegistrations->isNotEmpty();
+            $registeredBranchIds = $userRegistrations->pluck('branch_id')->filter()->all();
+        }
+
+        if ($event->type === 'lomba') {
+            return view('frontend.lomba-detail', [
+                'event' => $event,
+                'hasRegistered' => $hasRegistered,
+                'registeredBranchIds' => $registeredBranchIds,
+                'isRegistrationClosed' => $event->is_registration_closed,
+            ]);
         }
 
         return view('frontend.event-detail', [
@@ -157,15 +170,20 @@ class LandingPageController extends Controller
             ->orWhere('id', $slug)
             ->firstOrFail();
 
-        $alreadyRegistered = EventRegistration::query()
-            ->where('event_id', $event->id)
-            ->where('user_id', $request->user()->id)
-            ->exists();
+        $branchId = $request->input('branch_id');
 
-        if ($alreadyRegistered) {
+        $query = EventRegistration::query()
+            ->where('event_id', $event->id)
+            ->where('user_id', $request->user()->id);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        if ($query->exists()) {
             return redirect()
                 ->route('frontend.events.show', $event->slug ?: $event->id)
-                ->with('info', 'Anda sudah mendaftar event ini.');
+                ->with('info', 'Anda sudah mendaftar pada cabang lomba/event ini.');
         }
 
         if ($event->is_registration_closed) {
@@ -177,13 +195,14 @@ class LandingPageController extends Controller
         EventRegistration::create([
             'event_id' => $event->id,
             'user_id' => $request->user()->id,
+            'branch_id' => $branchId ?: null,
             'status' => 'registered',
             'registered_at' => now(),
         ]);
 
         return redirect()
             ->route('frontend.events.show', $event->slug ?: $event->id)
-            ->with('success', 'Berhasil mendaftar event.');
+            ->with('success', 'Berhasil mendaftar.');
     }
 
     public function myEvents(Request $request): View
